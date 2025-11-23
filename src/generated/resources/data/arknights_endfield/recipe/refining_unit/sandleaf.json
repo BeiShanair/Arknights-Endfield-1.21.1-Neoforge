@@ -1,0 +1,13 @@
+{
+  "type": "arknights_endfield:refining_unit",
+  "input": {
+    "count": 3,
+    "ingredient": {
+        "item": "arknights_endfield:sandleaf"
+    }
+  },
+  "output": {
+    "count": 1,
+    "id": "arknights_endfield:carbon"
+  }
+}

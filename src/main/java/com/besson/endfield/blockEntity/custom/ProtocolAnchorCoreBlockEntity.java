@@ -1,0 +1,159 @@
+package com.besson.endfield.blockEntity.custom;
+
+import com.besson.endfield.blockEntity.ModBlockEntities;
+import com.besson.endfield.power.PowerNetworkManager;
+import com.besson.endfield.screen.custom.ProtocolAnchorCoreScreenHandler;
+import net.minecraft.core.BlockPos;
+import net.minecraft.core.HolderLookup;
+import net.minecraft.core.NonNullList;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.network.chat.Component;
+import net.minecraft.network.protocol.Packet;
+import net.minecraft.network.protocol.game.ClientGamePacketListener;
+import net.minecraft.network.protocol.game.ClientboundBlockEntityDataPacket;
+import net.minecraft.server.level.ServerLevel;
+import net.minecraft.world.MenuProvider;
+import net.minecraft.world.entity.player.Inventory;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.inventory.AbstractContainerMenu;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.world.level.block.state.BlockState;
+import net.neoforged.neoforge.items.IItemHandler;
+import net.neoforged.neoforge.items.ItemStackHandler;
+import org.jetbrains.annotations.Nullable;
+import software.bernie.geckolib.animatable.GeoBlockEntity;
+import software.bernie.geckolib.animatable.instance.AnimatableInstanceCache;
+import software.bernie.geckolib.animation.AnimatableManager;
+import software.bernie.geckolib.animation.AnimationController;
+import software.bernie.geckolib.animation.RawAnimation;
+import software.bernie.geckolib.util.GeckoLibUtil;
+
+public class ProtocolAnchorCoreBlockEntity extends BlockEntity implements GeoBlockEntity, MenuProvider {
+    private final AnimatableInstanceCache cache = GeckoLibUtil.createInstanceCache(this);
+
+    private int buffer = 0;
+
+    private boolean registeredToManager = false;
+
+    private final ItemStackHandler itemStackHandler = new ItemStackHandler(54) {
+        @Override
+        protected void onContentsChanged(int slot) {
+            setChanged();
+        }
+    };
+
+    public ProtocolAnchorCoreBlockEntity(BlockPos pos, BlockState state) {
+        super(ModBlockEntities.PROTOCOL_ANCHOR_CORE.get(), pos, state);
+    }
+
+    public @Nullable IItemHandler getItemStackHandler() {
+        return itemStackHandler;
+    }
+
+    @Override
+    public void setLevel(Level pLevel) {
+        super.setLevel(pLevel);
+        if (!registeredToManager && pLevel instanceof ServerLevel serverLevel) {
+            PowerNetworkManager.get(serverLevel).registerGenerator(this.getBlockPos(), () -> {
+                try {
+                    return 150;
+                } catch (Throwable t) {
+                    return 0;
+                }
+            });
+            registeredToManager = true;
+        }
+    }
+
+    @Override
+    public void setRemoved() {
+        if (level instanceof ServerLevel serverLevel) {
+            PowerNetworkManager.get(serverLevel).unregisterGenerator(this.getBlockPos());
+        }
+        super.setRemoved();
+    }
+
+    private int getNearbyThermalBankPower() {
+        int sum = 0;
+        BlockPos blockPos = this.getBlockPos();
+        if (level != null) {
+            for (BlockPos pos : BlockPos.betweenClosed(blockPos.offset(-30, -30, -30), blockPos.offset(30, 30, 30))) {
+                BlockEntity be = level.getBlockEntity(pos);
+                if (be instanceof ThermalBankBlockEntity blockEntity) {
+                    sum += blockEntity.getPowerOutput();
+                }
+            }
+        }
+        return sum;
+    }
+
+    public void writeScreenData(FriendlyByteBuf buf) {
+        buf.writeBlockPos(this.worldPosition);
+        ServerLevel level = (ServerLevel) this.getLevel();
+        PowerNetworkManager manager = PowerNetworkManager.get(level);
+        buf.writeDouble(manager.getLastSupplyRatio());
+        buf.writeInt(manager.getLastTotalGenerated());
+        buf.writeInt(manager.getLastTotalDemand());
+        buf.writeInt(manager.getCurrentStoredEnergy());
+    }
+
+    @Override
+    public void registerControllers(AnimatableManager.ControllerRegistrar controllerRegistrar) {
+        controllerRegistrar.add(new AnimationController<>(this, "controller", 0,
+                state -> state.setAndContinue(RawAnimation.begin().thenLoop("idle"))));
+    }
+
+    @Override
+    public AnimatableInstanceCache getAnimatableInstanceCache() {
+        return cache;
+    }
+
+    @Override
+    public Component getDisplayName() {
+        return Component.translatable("blockEntity.protocol_anchor_core");
+    }
+
+    @Override
+    public @Nullable AbstractContainerMenu createMenu(int pContainerId, Inventory pPlayerInventory, Player pPlayer) {
+        return new ProtocolAnchorCoreScreenHandler(pContainerId, pPlayerInventory, this);
+    }
+
+    @Override
+    protected void saveAdditional(CompoundTag tag, HolderLookup.Provider registries) {
+        super.saveAdditional(tag, registries);
+        tag.putInt("buffer", this.buffer);
+        tag.put("inventory", itemStackHandler.serializeNBT(registries));
+    }
+
+    @Override
+    protected void loadAdditional(CompoundTag tag, HolderLookup.Provider registries) {
+        super.loadAdditional(tag, registries);
+        this.buffer = tag.getInt("buffer");
+        itemStackHandler.deserializeNBT(registries, tag.getCompound("inventory"));
+    }
+
+    @Override
+    public @Nullable Packet<ClientGamePacketListener> getUpdatePacket() {
+        return ClientboundBlockEntityDataPacket.create(this);
+    }
+
+    @Override
+    public CompoundTag getUpdateTag(HolderLookup.Provider registries) {
+        return saveWithFullMetadata(registries);
+    }
+
+    public NonNullList<ItemStack> getItems() {
+        NonNullList<ItemStack> items = NonNullList.create();
+        for (int i = 0; i < itemStackHandler.getSlots(); i++) {
+            items.add(itemStackHandler.getStackInSlot(i));
+        }
+        return items;
+    }
+
+    public IItemHandler getItemHandler() {
+        return itemStackHandler;
+    }
+}

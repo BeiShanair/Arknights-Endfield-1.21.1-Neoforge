@@ -1,0 +1,13 @@
+{
+  "type": "arknights_endfield:refining_unit",
+  "input": {
+    "count": 1,
+    "ingredient": {
+        "item": "arknights_endfield:originium_powder"
+    }
+  },
+  "output": {
+    "count": 1,
+    "id": "arknights_endfield:origocrust_powder"
+  }
+}

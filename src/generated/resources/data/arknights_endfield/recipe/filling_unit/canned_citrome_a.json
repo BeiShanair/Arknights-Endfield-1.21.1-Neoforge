@@ -1,0 +1,21 @@
+{
+  "type": "arknights_endfield:filling_unit",
+  "input": [
+    {
+      "count": 10,
+      "ingredient": {
+        "item": "arknights_endfield:steel_bottle"
+      }
+    },
+    {
+      "count": 10,
+      "ingredient": {
+        "item": "arknights_endfield:ground_citrome_powder"
+      }
+    }
+  ],
+  "output": {
+    "count": 1,
+    "id": "arknights_endfield:canned_citrome_a"
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "type": "arknights_endfield:moulding_unit",
+  "input": {
+    "count": 2,
+    "ingredient": {
+        "item": "arknights_endfield:ferrium"
+    }
+  },
+  "output": {
+    "count": 1,
+    "id": "arknights_endfield:ferrium_bottle"
+  }
+}

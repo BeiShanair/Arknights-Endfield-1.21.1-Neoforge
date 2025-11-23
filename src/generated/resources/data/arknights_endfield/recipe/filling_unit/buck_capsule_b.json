@@ -1,0 +1,21 @@
+{
+  "type": "arknights_endfield:filling_unit",
+  "input": [
+    {
+      "count": 10,
+      "ingredient": {
+        "item": "arknights_endfield:ferrium_bottle"
+      }
+    },
+    {
+      "count": 10,
+      "ingredient": {
+        "item": "arknights_endfield:buckflower_powder"
+      }
+    }
+  ],
+  "output": {
+    "count": 1,
+    "id": "arknights_endfield:buck_capsule_b"
+  }
+}

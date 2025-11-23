@@ -1,0 +1,21 @@
+{
+  "type": "arknights_endfield:gearing_unit",
+  "input": [
+    {
+      "count": 10,
+      "ingredient": {
+        "item": "arknights_endfield:packed_origocrust"
+      }
+    },
+    {
+      "count": 5,
+      "ingredient": {
+        "item": "arknights_endfield:cuprium"
+      }
+    }
+  ],
+  "output": {
+    "count": 1,
+    "id": "arknights_endfield:cuprium_component"
+  }
+}

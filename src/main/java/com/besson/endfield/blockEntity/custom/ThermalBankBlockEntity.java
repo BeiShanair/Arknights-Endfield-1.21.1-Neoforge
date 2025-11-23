@@ -1,0 +1,192 @@
+package com.besson.endfield.blockEntity.custom;
+
+import com.besson.endfield.blockEntity.ModBlockEntities;
+import com.besson.endfield.power.PowerNetworkManager;
+import com.besson.endfield.screen.custom.ThermalBankScreenHandler;
+import net.minecraft.core.BlockPos;
+import net.minecraft.core.HolderLookup;
+import net.minecraft.core.NonNullList;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.network.chat.Component;
+import net.minecraft.network.protocol.Packet;
+import net.minecraft.network.protocol.game.ClientGamePacketListener;
+import net.minecraft.network.protocol.game.ClientboundBlockEntityDataPacket;
+import net.minecraft.server.level.ServerLevel;
+import net.minecraft.world.MenuProvider;
+import net.minecraft.world.entity.player.Inventory;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.inventory.AbstractContainerMenu;
+import net.minecraft.world.inventory.ContainerData;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.crafting.RecipeType;
+import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.world.level.block.state.BlockState;
+import net.neoforged.neoforge.items.IItemHandler;
+import net.neoforged.neoforge.items.ItemStackHandler;
+import org.jetbrains.annotations.Nullable;
+import software.bernie.geckolib.animatable.GeoBlockEntity;
+import software.bernie.geckolib.animatable.instance.AnimatableInstanceCache;
+import software.bernie.geckolib.animation.AnimatableManager;
+import software.bernie.geckolib.util.GeckoLibUtil;
+
+public class ThermalBankBlockEntity extends BlockEntity implements GeoBlockEntity, MenuProvider {
+    private final AnimatableInstanceCache cache = GeckoLibUtil.createInstanceCache(this);
+    private final ItemStackHandler itemStackHandler = new ItemStackHandler(1) {
+        @Override
+        protected void onContentsChanged(int slot) {
+            setChanged();
+        }
+    };
+
+    private int burnTime;
+    private int fuelTime;
+    protected final ContainerData propertyDelegate;
+    private boolean registeredToManager = false;
+
+    public static final int INPUT_SLOT = 0;
+
+    public ThermalBankBlockEntity(BlockPos pos, BlockState state) {
+        super(ModBlockEntities.THERMAL_BANK.get(), pos, state);
+        this.propertyDelegate = new ContainerData() {
+            @Override
+            public int get(int index) {
+                return switch (index) {
+                    case 0 -> ThermalBankBlockEntity.this.burnTime;
+                    case 1 -> ThermalBankBlockEntity.this.fuelTime;
+                    default -> 0;
+                };
+            }
+
+            @Override
+            public void set(int index, int value) {
+                switch (index) {
+                    case 0 -> ThermalBankBlockEntity.this.burnTime = value;
+                    case 1 -> ThermalBankBlockEntity.this.fuelTime = value;
+                }
+            }
+
+            @Override
+            public int getCount() {
+                return 2;
+            }
+        };
+    }
+
+    @Override
+    public void registerControllers(AnimatableManager.ControllerRegistrar controllers) {
+
+    }
+
+    @Override
+    public AnimatableInstanceCache getAnimatableInstanceCache() {
+        return cache;
+    }
+
+
+    public NonNullList<ItemStack> getItems() {
+        NonNullList<ItemStack> list = NonNullList.withSize(1, ItemStack.EMPTY);
+        list.set(0, itemStackHandler.getStackInSlot(0));
+        return list;
+    }
+
+    public static void tick(Level world, BlockPos pos, BlockState state, ThermalBankBlockEntity entity) {
+        if (entity.burnTime > 0) {
+            entity.burnTime--;
+        }
+
+        if (entity.burnTime == 0) {
+            ItemStack stack = entity.itemStackHandler.getStackInSlot(INPUT_SLOT);
+            Integer fuelValue = stack.getBurnTime(RecipeType.SMELTING);
+
+            if (fuelValue != null && fuelValue > 0) {
+                int fuelTime = fuelValue / 2;
+                entity.fuelTime = fuelTime;
+                entity.burnTime = fuelTime;
+
+                stack.shrink(1);
+                entity.itemStackHandler.setStackInSlot(INPUT_SLOT, stack);
+                entity.setChanged();
+            }
+        }
+    }
+
+    public boolean isBurning() {
+        return this.burnTime > 0;
+    }
+
+    public int getPowerOutput() {
+        return isBurning() ? 150 : 0;
+    }
+
+    public float getFuelProgress() {
+        if (fuelTime == 0) return 0;
+        return (float) burnTime / (float) fuelTime;
+    }
+
+    @Override
+    protected void saveAdditional(CompoundTag tag, HolderLookup.Provider registries) {
+        super.saveAdditional(tag, registries);
+        tag.put("inventory", itemStackHandler.serializeNBT(registries));
+        tag.putInt("thermal_bank.burnTime", burnTime);
+        tag.putInt("thermal_bank.fuelTime", fuelTime);
+    }
+
+    @Override
+    protected void loadAdditional(CompoundTag tag, HolderLookup.Provider registries) {
+        super.loadAdditional(tag, registries);
+        itemStackHandler.deserializeNBT(registries, tag.getCompound("inventory"));
+        this.burnTime = tag.getInt("thermal_bank.burnTime");
+        this.fuelTime = tag.getInt("thermal_bank.fuelTime");
+    }
+
+    public @Nullable IItemHandler getItemStackHandler() {
+        return itemStackHandler;
+    }
+
+    @Override
+    public CompoundTag getUpdateTag(HolderLookup.Provider registries) {
+        return saveWithFullMetadata(registries);
+    }
+
+    @Override
+    public @Nullable Packet<ClientGamePacketListener> getUpdatePacket() {
+        return ClientboundBlockEntityDataPacket.create(this);
+    }
+
+    @Override
+    public Component getDisplayName() {
+        return Component.translatable("blockEntity.thermal_bank");
+    }
+
+    @Override
+    public @Nullable AbstractContainerMenu createMenu(int pContainerId, Inventory pPlayerInventory, Player pPlayer) {
+        return new ThermalBankScreenHandler(pContainerId, pPlayerInventory, this, this.propertyDelegate);
+    }
+
+    @Override
+    public void setLevel(Level pLevel) {
+        super.setLevel(pLevel);
+        if (!registeredToManager && pLevel instanceof ServerLevel serverLevel) {
+            PowerNetworkManager.get(serverLevel).registerGenerator(this.getBlockPos(), () -> {
+                try {
+                    return getPowerOutput();
+                } catch (Exception e) {
+                    return 0;
+                }
+            });
+            registeredToManager = true;
+        }
+    }
+
+    @Override
+    public void setRemoved() {
+        if (level instanceof ServerLevel serverLevel) {
+            PowerNetworkManager.get(serverLevel).unregisterGenerator(this.getBlockPos());
+        }
+        super.setRemoved();
+    }
+    public ContainerData getPropertyDelegate() {
+        return propertyDelegate;
+    }
+}

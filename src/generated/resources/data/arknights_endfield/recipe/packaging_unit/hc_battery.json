@@ -1,0 +1,21 @@
+{
+  "type": "arknights_endfield:packaging_unit",
+  "input": [
+    {
+      "count": 10,
+      "ingredient": {
+        "item": "arknights_endfield:steel_part"
+      }
+    },
+    {
+      "count": 20,
+      "ingredient": {
+        "item": "arknights_endfield:dense_originium_powder"
+      }
+    }
+  ],
+  "output": {
+    "count": 1,
+    "id": "arknights_endfield:hc_battery"
+  }
+}

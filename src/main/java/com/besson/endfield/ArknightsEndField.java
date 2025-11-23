@@ -1,0 +1,89 @@
+package com.besson.endfield;
+
+import com.besson.endfield.block.ModBlocks;
+import com.besson.endfield.blockEntity.ModBlockEntities;
+import com.besson.endfield.blockEntity.ModCapabilities;
+import com.besson.endfield.entity.ModItemEntity;
+import com.besson.endfield.item.ModItemGroups;
+import com.besson.endfield.item.ModItems;
+import com.besson.endfield.network.ModNetWorking;
+import com.besson.endfield.recipe.ModRecipes;
+import com.besson.endfield.screen.ModScreens;
+import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.world.level.block.Blocks;
+import net.neoforged.fml.config.ModConfig;
+import org.slf4j.Logger;
+
+import com.mojang.logging.LogUtils;
+
+import net.neoforged.bus.api.IEventBus;
+import net.neoforged.bus.api.SubscribeEvent;
+import net.neoforged.fml.common.Mod;
+import net.neoforged.fml.ModContainer;
+import net.neoforged.fml.event.lifecycle.FMLCommonSetupEvent;
+import net.neoforged.neoforge.common.NeoForge;
+import net.neoforged.neoforge.event.BuildCreativeModeTabContentsEvent;
+import net.neoforged.neoforge.event.server.ServerStartingEvent;
+import software.bernie.geckolib.GeckoLib;
+import software.bernie.geckolib.GeckoLibConstants;
+
+// The value here should match an entry in the META-INF/neoforge.mods.toml file
+@Mod(ArknightsEndField.MOD_ID)
+public class ArknightsEndField {
+    // Define mod id in a common place for everything to reference
+    public static final String MOD_ID = "arknights_endfield";
+    // Directly reference a slf4j logger
+    public static final Logger LOGGER = LogUtils.getLogger();
+
+    // The constructor for the mod class is the first code that is run when your mod is loaded.
+    // FML will recognize some parameter types like IEventBus or ModContainer and pass them in automatically.
+    public ArknightsEndField(IEventBus modEventBus, ModContainer modContainer) {
+        // Register the commonSetup method for modloading
+        modEventBus.addListener(this::commonSetup);
+
+        GeckoLibConstants.init();
+        ModItems.register(modEventBus);
+        ModItemGroups.register(modEventBus);
+        ModBlocks.register(modEventBus);
+        ModBlockEntities.register(modEventBus);
+        ModScreens.register(modEventBus);
+        ModRecipes.register(modEventBus);
+        ModItemEntity.register(modEventBus);
+
+        // Register ourselves for server and other game events we are interested in.
+        // Note that this is necessary if and only if we want *this* class (ArknightsEndField) to respond directly to events.
+        // Do not add this line if there are no @SubscribeEvent-annotated functions in this class, like onServerStarting() below.
+        NeoForge.EVENT_BUS.register(this);
+
+        // Register the item to a creative tab
+        modEventBus.addListener(ModCapabilities::register);
+        modEventBus.addListener(ModNetWorking::register);
+        // Register our mod's ModConfigSpec so that FML can create and load the config file for us
+        modContainer.registerConfig(ModConfig.Type.COMMON, Config.SPEC);
+    }
+
+    private void commonSetup(FMLCommonSetupEvent event) {
+        // Some common setup code
+        LOGGER.info("HELLO FROM COMMON SETUP");
+
+        if (Config.LOG_DIRT_BLOCK.getAsBoolean()) {
+            LOGGER.info("DIRT BLOCK >> {}", BuiltInRegistries.BLOCK.getKey(Blocks.DIRT));
+        }
+
+        LOGGER.info("{}{}", Config.MAGIC_NUMBER_INTRODUCTION.get(), Config.MAGIC_NUMBER.getAsInt());
+
+        Config.ITEM_STRINGS.get().forEach((item) -> LOGGER.info("ITEM >> {}", item));
+    }
+
+    // Add the example block item to the building blocks tab
+    private void addCreative(BuildCreativeModeTabContentsEvent event) {
+
+    }
+
+    // You can use SubscribeEvent and let the Event Bus discover methods to call
+    @SubscribeEvent
+    public void onServerStarting(ServerStartingEvent event) {
+        // Do something when the server starts
+        LOGGER.info("HELLO from server starting");
+    }
+}
