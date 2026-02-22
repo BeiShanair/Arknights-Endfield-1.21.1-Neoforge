@@ -1,0 +1,8 @@
+{
+  "type": "neoforge:add_features",
+  "biomes": "#minecraft:is_nether",
+  "features": [
+    "arknights_endfield:netherite_mineral_vein_placed"
+  ],
+  "step": "underground_decoration"
+}
