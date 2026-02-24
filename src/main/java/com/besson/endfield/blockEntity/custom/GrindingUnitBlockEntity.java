@@ -1,6 +1,5 @@
 package com.besson.endfield.blockEntity.custom;
 
-import com.besson.endfield.block.ElectrifiableDevice;
 import com.besson.endfield.blockEntity.ModBlockEntities;
 import com.besson.endfield.recipe.InputEntry;
 import com.besson.endfield.recipe.ModRecipes;
@@ -8,14 +7,8 @@ import com.besson.endfield.recipe.custom.DoubleRecipeInput;
 import com.besson.endfield.recipe.custom.GrindingUnitRecipe;
 import com.besson.endfield.screen.custom.GrindingUnitScreenHandler;
 import net.minecraft.core.BlockPos;
-import net.minecraft.core.HolderLookup;
 import net.minecraft.core.NonNullList;
-import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
-import net.minecraft.network.protocol.Packet;
-import net.minecraft.network.protocol.game.ClientGamePacketListener;
-import net.minecraft.network.protocol.game.ClientboundBlockEntityDataPacket;
-import net.minecraft.world.MenuProvider;
 import net.minecraft.world.SimpleContainer;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
@@ -24,7 +17,6 @@ import net.minecraft.world.inventory.ContainerData;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.RecipeHolder;
 import net.minecraft.world.level.Level;
-import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.neoforged.neoforge.items.IItemHandler;
 import net.neoforged.neoforge.items.ItemStackHandler;
@@ -37,39 +29,27 @@ import software.bernie.geckolib.util.GeckoLibUtil;
 
 import java.util.Optional;
 
-public class GrindingUnitBlockEntity extends BlockEntity implements MenuProvider, GeoBlockEntity, ElectrifiableDevice {
+public class GrindingUnitBlockEntity extends BaseIOBlockEntity<GrindingUnitRecipe> implements GeoBlockEntity {
     private final AnimatableInstanceCache cache = GeckoLibUtil.createInstanceCache(this);
 
     public static final int INPUT_SLOT1 = 0;
     public static final int INPUT_SLOT2 = 1;
     public static final int OUTPUT_SLOT = 2;
-
-    private final ItemStackHandler itemStackHandler = new ItemStackHandler(3) {
-        @Override
-        protected void onContentsChanged(int slot) {
-            setChanged();
-        }
-    };
-
-    private IItemHandler input = new InputItemHandler(itemStackHandler);
-    private IItemHandler output = new OutputItemHandler(itemStackHandler);
-
-    protected final ContainerData propertyDelegate;
-    private int progress = 0;
-    private int maxProgress = 40;
-
-    private int storedPower = 0;
     private static final int POWER_PRE_TICK = 10;
-    private boolean isWorking = false;
 
     public GrindingUnitBlockEntity(BlockPos pos, BlockState state) {
-        super(ModBlockEntities.GRINDING_UNIT.get(), pos, state);
-        this.propertyDelegate = new ContainerData() {
+        super(ModBlockEntities.GRINDING_UNIT.get(), pos, state, 40);
+    }
+
+    @Override
+    protected ContainerData createPropertyDelegate() {
+        return new ContainerData() {
             @Override
             public int get(int index) {
                 return switch (index) {
                     case 0 -> GrindingUnitBlockEntity.this.progress;
                     case 1 -> GrindingUnitBlockEntity.this.maxProgress;
+                    case 2 -> GrindingUnitBlockEntity.this.enable ? 1 : 0;
                     default -> 0;
                 };
             }
@@ -79,14 +59,40 @@ public class GrindingUnitBlockEntity extends BlockEntity implements MenuProvider
                 switch (index) {
                     case 0 -> GrindingUnitBlockEntity.this.progress = value;
                     case 1 -> GrindingUnitBlockEntity.this.maxProgress = value;
+                    case 2 -> GrindingUnitBlockEntity.this.enable = value == 1;
                 }
             }
 
             @Override
             public int getCount() {
-                return 2;
+                return 3;
             }
         };
+    }
+
+    @Override
+    protected int getPowerCostPerTick() {
+        return POWER_PRE_TICK;
+    }
+
+    @Override
+    protected int getInvSize() {
+        return 3;
+    }
+
+    @Override
+    protected int getOutputSlotIndex() {
+        return OUTPUT_SLOT;
+    }
+
+    @Override
+    public IItemHandler getOutput() {
+        return new OutputItemHandler(itemStackHandler);
+    }
+
+    @Override
+    public IItemHandler getInput() {
+        return new InputItemHandler(itemStackHandler);
     }
 
     @Override
@@ -100,29 +106,6 @@ public class GrindingUnitBlockEntity extends BlockEntity implements MenuProvider
     }
 
     @Override
-    public void receiveElectricCharge(int amount) {
-        this.storedPower = Math.min(storedPower + amount, 100);
-    }
-
-    @Override
-    public boolean needsPower() {
-        return storedPower < POWER_PRE_TICK;
-    }
-
-    @Override
-    public int getRequiredPower() {
-        return POWER_PRE_TICK;
-    }
-
-    public NonNullList<ItemStack> getItems() {
-        NonNullList<ItemStack> items = NonNullList.withSize(itemStackHandler.getSlots(), ItemStack.EMPTY);
-        for (int i = 0; i < itemStackHandler.getSlots(); i++) {
-            items.set(i, itemStackHandler.getStackInSlot(i));
-        }
-        return items;
-    }
-
-    @Override
     public Component getDisplayName() {
         return Component.translatable("blockEntity.grinding_unit");
     }
@@ -133,68 +116,7 @@ public class GrindingUnitBlockEntity extends BlockEntity implements MenuProvider
     }
 
     @Override
-    public @Nullable Packet<ClientGamePacketListener> getUpdatePacket() {
-        return ClientboundBlockEntityDataPacket.create(this);
-    }
-
-    @Override
-    public CompoundTag getUpdateTag(HolderLookup.Provider registries) {
-        return saveWithFullMetadata(registries);
-    }
-
-    @Override
-    protected void saveAdditional(CompoundTag tag, HolderLookup.Provider registries) {
-        super.saveAdditional(tag, registries);
-        tag.put("inventory", itemStackHandler.serializeNBT(registries));
-        tag.putInt("progress", this.progress);
-        tag.putBoolean("isWorking", this.isWorking);
-        tag.putInt("storedPower", this.storedPower);
-    }
-
-    @Override
-    protected void loadAdditional(CompoundTag tag, HolderLookup.Provider registries) {
-        super.loadAdditional(tag, registries);
-        itemStackHandler.deserializeNBT(registries, tag.getCompound("inventory"));
-        this.progress = tag.getInt("progress");
-        this.isWorking = tag.getBoolean("isWorking");
-        this.storedPower = tag.getInt("storedPower");
-    }
-
-    public static void tick(Level world, BlockPos pos, BlockState state, GrindingUnitBlockEntity entity) {
-        if (world.isClientSide()) return;
-
-        if (entity.isOutputSlotAvailable()) {
-            boolean hasRecipe = entity.hasCorrectRecipe(world);
-            if (entity.needsPower() || !hasRecipe) {
-                entity.isWorking = false;
-            } else if (!entity.needsPower() && !entity.isWorking) {
-                entity.isWorking = true;
-            }
-            entity.setChanged();
-            world.sendBlockUpdated(pos, state, state, 3);
-
-            if (hasRecipe && entity.storedPower >= POWER_PRE_TICK) {
-                entity.incrementProgress();
-                entity.storedPower -= POWER_PRE_TICK;
-
-                if (entity.hasCraftingFinished()) {
-                    entity.craftItem(world);
-                    entity.resetProgress();
-                }
-            } else {
-                entity.resetProgress();
-            }
-        } else {
-            entity.resetProgress();
-        }
-        entity.setChanged();
-    }
-
-    private void resetProgress() {
-        this.progress = 0;
-    }
-
-    private Optional<RecipeHolder<GrindingUnitRecipe>> getMatchingRecipe(Level world) {
+    protected Optional<RecipeHolder<GrindingUnitRecipe>> getMatchRecipe(Level world) {
         SimpleContainer inv = new SimpleContainer(3);
         for (int i = 0; i < 3; i++) {
             inv.setItem(i, this.itemStackHandler.getStackInSlot(i));
@@ -204,14 +126,14 @@ public class GrindingUnitBlockEntity extends BlockEntity implements MenuProvider
                 .getRecipeFor(ModRecipes.GRINDING_UNIT_TYPE.get(), input, world);
     }
 
-    private void craftItem(Level world) {
-        Optional<RecipeHolder<GrindingUnitRecipe>> match = getMatchingRecipe(world);
-        if (match.isPresent()) {
-            ItemStack result = match.get().value().getResultItem(world.registryAccess());
+    @Override
+    protected void craftItem(Level world) {
+        getMatchRecipe(world).ifPresent(r -> {
+            ItemStack result = r.value().getResultItem(world.registryAccess());
             this.itemStackHandler.setStackInSlot(OUTPUT_SLOT,
                     new ItemStack(result.getItem(), itemStackHandler.getStackInSlot(OUTPUT_SLOT).getCount() + result.getCount()));
 
-            NonNullList<InputEntry> recipeInputs = match.get().value().getInput();
+            NonNullList<InputEntry> recipeInputs = r.value().getInput();
             boolean[] used = new boolean[2];
             for (InputEntry entry: recipeInputs) {
                 for (int i = 0; i < used.length; i++) {
@@ -224,11 +146,12 @@ public class GrindingUnitBlockEntity extends BlockEntity implements MenuProvider
                     }
                 }
             }
-        }
+        });
     }
 
-    private boolean hasCorrectRecipe(Level world) {
-        Optional<RecipeHolder<GrindingUnitRecipe>> match = getMatchingRecipe(world);
+    @Override
+    protected boolean hasCorrectRecipe(Level world) {
+        Optional<RecipeHolder<GrindingUnitRecipe>> match = getMatchRecipe(world);
         if (match.isPresent()) {
             NonNullList<InputEntry> recipeInputs = match.get().value().getInput();
             boolean[] used = new boolean[2];
@@ -245,40 +168,9 @@ public class GrindingUnitBlockEntity extends BlockEntity implements MenuProvider
                 if (!matched) return false;
             }
             ItemStack result = match.get().value().getResultItem(world.registryAccess());
-            return canInsertItem(result);
+            return canOutputAccept(result);
         }
         return false;
-    }
-
-    private boolean hasCraftingFinished() {
-        return progress >= maxProgress;
-    }
-
-    private void incrementProgress() {
-        this.progress++;
-    }
-
-    private boolean canInsertItem(ItemStack item) {
-        ItemStack outputStack = itemStackHandler.getStackInSlot(OUTPUT_SLOT);
-        return outputStack.isEmpty() || (outputStack.getItem() == item.getItem()
-                && outputStack.getCount() + item.getCount() <= outputStack.getMaxStackSize());
-    }
-
-    private boolean isOutputSlotAvailable() {
-        ItemStack outputStack = itemStackHandler.getStackInSlot(OUTPUT_SLOT);
-        return outputStack.isEmpty() || outputStack.getCount() < outputStack.getMaxStackSize();
-    }
-
-    public @Nullable IItemHandler getItemStackHandler() {
-        return itemStackHandler;
-    }
-
-    public IItemHandler getInputHandler() {
-        return input;
-    }
-
-    public IItemHandler getOutputHandler() {
-        return output;
     }
 
     private record InputItemHandler(ItemStackHandler parent) implements IItemHandler {

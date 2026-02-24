@@ -130,7 +130,6 @@ public class CrafterScreenHandler extends AbstractContainerMenu {
 
     public void updateResult() {
         Level world = player.level();
-        if (world.isClientSide()) return;
 
         CrafterRecipeInput input = new CrafterRecipeInput(inventory);
 

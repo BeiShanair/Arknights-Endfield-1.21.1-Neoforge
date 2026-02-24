@@ -1,6 +1,5 @@
 package com.besson.endfield.block.custom;
 
-
 import com.besson.endfield.blockEntity.custom.CrafterBlockEntity;
 import com.mojang.serialization.MapCodec;
 import net.minecraft.core.BlockPos;

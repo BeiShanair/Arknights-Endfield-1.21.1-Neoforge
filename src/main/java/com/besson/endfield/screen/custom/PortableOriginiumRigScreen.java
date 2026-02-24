@@ -1,6 +1,7 @@
 package com.besson.endfield.screen.custom;
 
 import com.besson.endfield.ArknightsEndField;
+import com.besson.endfield.blockEntity.custom.PortableOriginiumRigBlockEntity;
 import com.mojang.blaze3d.systems.RenderSystem;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
@@ -9,36 +10,20 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.player.Inventory;
 
-public class PortableOriginiumRigScreen extends AbstractContainerScreen<PortableOriginiumRigScreenHandler> {
-    private static final ResourceLocation TEXTURE = ResourceLocation.fromNamespaceAndPath(ArknightsEndField.MOD_ID, "textures/gui/portable_originium_rig.png");
-
+public class PortableOriginiumRigScreen extends BaseRigScreen<PortableOriginiumRigScreenHandler, PortableOriginiumRigBlockEntity> {
     public PortableOriginiumRigScreen(PortableOriginiumRigScreenHandler handler, Inventory inventory, Component title) {
         super(handler, inventory, title);
     }
 
     @Override
-    protected void renderBg(GuiGraphics context, float delta, int mouseX, int mouseY) {
-        RenderSystem.setShader(GameRenderer::getPositionTexShader);
-        RenderSystem.setShaderColor(1f, 1f, 1f, 1f);
-        RenderSystem.setShaderTexture(0, TEXTURE);
-        int x = (this.width - this.imageWidth) / 2;
-        int y = (this.height - this.imageHeight) / 2;
-
-        context.blit(TEXTURE, x, y, 0, 0, imageWidth, imageHeight);
-
-        renderProgressArrow(context, x, y);
-    }
-
-    private void renderProgressArrow(GuiGraphics context, int x, int y) {
-        if (menu.isCrafting()){
-            context.blit(TEXTURE,x + 68, y + 41, 176,0, menu.getScaledProgress(), 8);
-        }
+    protected ResourceLocation setTexture() {
+        return ResourceLocation.fromNamespaceAndPath(ArknightsEndField.MOD_ID, "textures/gui/portable_originium_rig.png");
     }
 
     @Override
-    public void render(GuiGraphics context, int mouseX, int mouseY, float delta) {
-        renderBackground(context, mouseX, mouseY, delta);
-        super.render(context, mouseX, mouseY, delta);
-        renderTooltip(context,mouseX,mouseY);
+    protected void renderProgressArrow(GuiGraphics context, int x, int y) {
+        if (menu.isCrafting()){
+            context.blit(TEXTURE,x + 68, y + 41, 176,0, menu.getScaledProgress(), 8);
+        }
     }
 }

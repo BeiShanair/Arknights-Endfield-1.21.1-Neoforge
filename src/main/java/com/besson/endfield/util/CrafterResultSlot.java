@@ -32,17 +32,19 @@ public class CrafterResultSlot extends Slot {
     public void onTake(Player player, ItemStack stack) {
         Level world = player.level();
         if (!world.isClientSide()) {
-            if (handler instanceof CrafterScreenHandler screenHandler) {
-                var recipes = screenHandler.getCurrentRecipes();
-                int index = screenHandler.getSelectedRecipeIndex();
+            if (handler instanceof CrafterScreenHandler crafter) {
+                var recipes = crafter.getCurrentRecipes();
+                int index = crafter.getSelectedRecipeIndex();
+
                 if (!recipes.isEmpty() && index < recipes.size()) {
                     CrafterRecipe recipe = recipes.get(index).value();
-                    CrafterRecipeInput input = new CrafterRecipeInput(inputInventory);
-                    recipe.assemble(input, world.registryAccess());
+
+                    recipe.consumeInputs(inputInventory);
+
+                    crafter.updateResult();
                 }
             }
         }
-        handler.slotsChanged(inputInventory);
         super.onTake(player, stack);
     }
 }

@@ -1,8 +1,11 @@
 package com.besson.endfield.blockEntity.custom;
 
 import com.besson.endfield.blockEntity.ModBlockEntities;
-import com.besson.endfield.power.PowerNetworkManager;
+import com.besson.endfield.util.NodeEntry;
+import com.besson.endfield.util.NodeType;
+import com.besson.endfield.util.PowerNetworkManager;
 import com.besson.endfield.screen.custom.ProtocolAnchorCoreScreenHandler;
+import com.besson.endfield.util.PowerNetworkNodeManager;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.core.NonNullList;
@@ -34,7 +37,7 @@ import software.bernie.geckolib.util.GeckoLibUtil;
 public class ProtocolAnchorCoreBlockEntity extends BlockEntity implements GeoBlockEntity, MenuProvider {
     private final AnimatableInstanceCache cache = GeckoLibUtil.createInstanceCache(this);
 
-    private int buffer = 0;
+    private boolean needsInit = true;
 
     private boolean registeredToManager = false;
 
@@ -53,18 +56,25 @@ public class ProtocolAnchorCoreBlockEntity extends BlockEntity implements GeoBlo
         return itemStackHandler;
     }
 
+    public static void tick(Level world, BlockPos pos, BlockState state, ProtocolAnchorCoreBlockEntity be) {
+        if (world.isClientSide()) return;
+
+        if (be.needsInit && world instanceof ServerLevel serverWorld) {
+            be.needsInit = false;
+
+            PowerNetworkManager.get(serverWorld).registerGenerator(pos, () -> 150);
+
+            PowerNetworkNodeManager manager = PowerNetworkNodeManager.get(serverWorld);
+            manager.register(new NodeEntry(pos, NodeType.CORE));
+            be.registeredToManager = true;
+        }
+    }
+
     @Override
     public void setLevel(Level pLevel) {
         super.setLevel(pLevel);
-        if (!registeredToManager && pLevel instanceof ServerLevel serverLevel) {
-            PowerNetworkManager.get(serverLevel).registerGenerator(this.getBlockPos(), () -> {
-                try {
-                    return 150;
-                } catch (Throwable t) {
-                    return 0;
-                }
-            });
-            registeredToManager = true;
+        if (pLevel instanceof ServerLevel) {
+            needsInit = true;
         }
     }
 
@@ -72,22 +82,10 @@ public class ProtocolAnchorCoreBlockEntity extends BlockEntity implements GeoBlo
     public void setRemoved() {
         if (level instanceof ServerLevel serverLevel) {
             PowerNetworkManager.get(serverLevel).unregisterGenerator(this.getBlockPos());
+            PowerNetworkNodeManager.get(serverLevel).unregister(this.getBlockPos());
+            registeredToManager = false;
         }
         super.setRemoved();
-    }
-
-    private int getNearbyThermalBankPower() {
-        int sum = 0;
-        BlockPos blockPos = this.getBlockPos();
-        if (level != null) {
-            for (BlockPos pos : BlockPos.betweenClosed(blockPos.offset(-30, -30, -30), blockPos.offset(30, 30, 30))) {
-                BlockEntity be = level.getBlockEntity(pos);
-                if (be instanceof ThermalBankBlockEntity blockEntity) {
-                    sum += blockEntity.getPowerOutput();
-                }
-            }
-        }
-        return sum;
     }
 
     public void writeScreenData(FriendlyByteBuf buf) {
@@ -124,14 +122,12 @@ public class ProtocolAnchorCoreBlockEntity extends BlockEntity implements GeoBlo
     @Override
     protected void saveAdditional(CompoundTag tag, HolderLookup.Provider registries) {
         super.saveAdditional(tag, registries);
-        tag.putInt("buffer", this.buffer);
         tag.put("inventory", itemStackHandler.serializeNBT(registries));
     }
 
     @Override
     protected void loadAdditional(CompoundTag tag, HolderLookup.Provider registries) {
         super.loadAdditional(tag, registries);
-        this.buffer = tag.getInt("buffer");
         itemStackHandler.deserializeNBT(registries, tag.getCompound("inventory"));
     }
 

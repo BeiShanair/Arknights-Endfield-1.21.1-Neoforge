@@ -93,6 +93,11 @@ public class ModBlocks {
             () -> new ThermalBankBlock(BlockBehaviour.Properties.of().strength(3f, 5f).noOcclusion()));
     public static final DeferredBlock<Block> THERMAL_BANK_SIDE = registerBlocks("thermal_bank_side",
             () -> new ThermalBankSideBlock(BlockBehaviour.Properties.of().strength(3f, 5f).noOcclusion()));
+    
+    public static final DeferredBlock<BeltBlock> BELT = registerBlocks("belt",
+            () -> new BeltBlock(BlockBehaviour.Properties.of().strength(0.5f).noOcclusion()));
+    public static final DeferredBlock<Block> OUTPUT_PORT = registerBlocks("output_port",
+            () -> new OutputPortBlock(BlockBehaviour.Properties.of().strength(1f).noOcclusion()));
 
     public static final DeferredBlock<Block> AMETHYST_MINERAL_VEIN_BLOCK = registerBlocks("amethyst_mineral_vein_block",
             () -> new Block(BlockBehaviour.Properties.of().strength(5f, 5f).requiresCorrectToolForDrops()));

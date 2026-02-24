@@ -7,7 +7,6 @@ import com.besson.endfield.recipe.custom.OreRigRecipe;
 import com.besson.endfield.screen.custom.ElectricMiningRigMkIIScreenHandler;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.HolderLookup;
-import net.minecraft.core.NonNullList;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.protocol.Packet;
@@ -23,11 +22,7 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.RecipeHolder;
 import net.minecraft.world.item.crafting.SingleRecipeInput;
 import net.minecraft.world.level.Level;
-import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
-import net.minecraft.world.phys.AABB;
-import net.neoforged.neoforge.items.IItemHandler;
-import net.neoforged.neoforge.items.ItemStackHandler;
 import org.jetbrains.annotations.Nullable;
 import software.bernie.geckolib.animatable.GeoBlockEntity;
 import software.bernie.geckolib.animatable.instance.AnimatableInstanceCache;
@@ -38,34 +33,29 @@ import software.bernie.geckolib.util.GeckoLibUtil;
 
 import java.util.Optional;
 
-public class ElectricMiningRigMkIIBlockEntity extends BlockEntity implements GeoBlockEntity, MenuProvider, ElectrifiableDevice {
+public class ElectricMiningRigMkIIBlockEntity extends BaseRigBlockEntity<OreRigRecipe> implements GeoBlockEntity, MenuProvider, ElectrifiableDevice {
     private final AnimatableInstanceCache cache = GeckoLibUtil.createInstanceCache(this);
-
-    private final ItemStackHandler itemStackHandler = new ItemStackHandler(1) {
-        @Override
-        protected void onContentsChanged(int slot) {
-            setChanged();
-        }
-    };
-
     private static final int OUTPUT_SLOT = 0;
-
-    private int storedPower = 0;
     private static final int POWER_PRE_TICK = 10;
-    private boolean isWorking = false;
-
-    protected final ContainerData propertyDelegate;
-    private int progress = 0;
-    private int maxProgress = 20;
 
     public ElectricMiningRigMkIIBlockEntity(BlockPos pos, BlockState state) {
-        super(ModBlockEntities.ELECTRIC_MINING_RIG_MK_II.get(), pos, state);
-        this.propertyDelegate = new ContainerData() {
+        super(ModBlockEntities.ELECTRIC_MINING_RIG_MK_II.get(), pos, state, 60);
+    }
+
+    @Override
+    protected int getPowerCostPerTick() {
+        return POWER_PRE_TICK;
+    }
+
+    @Override
+    protected ContainerData createPropertyDelegate() {
+        return new ContainerData() {
             @Override
             public int get(int index) {
                 return switch (index) {
                     case 0 -> ElectricMiningRigMkIIBlockEntity.this.progress;
                     case 1 -> ElectricMiningRigMkIIBlockEntity.this.maxProgress;
+                    case 2 -> ElectricMiningRigMkIIBlockEntity.this.enable ? 1 : 0;
                     default -> 0;
                 };
             }
@@ -75,44 +65,15 @@ public class ElectricMiningRigMkIIBlockEntity extends BlockEntity implements Geo
                 switch (index) {
                     case 0 -> ElectricMiningRigMkIIBlockEntity.this.progress = value;
                     case 1 -> ElectricMiningRigMkIIBlockEntity.this.maxProgress = value;
+                    case 2 -> ElectricMiningRigMkIIBlockEntity.this.enable = value == 1;
                 }
             }
 
             @Override
             public int getCount() {
-                return 2;
+                return 3;
             }
         };
-    }
-
-    public static void tick(Level world, BlockPos pos, BlockState state, ElectricMiningRigMkIIBlockEntity entity) {
-        if (world.isClientSide()) return;
-
-        if (entity.isOutputSlotAvailable()) {
-            boolean hasRecipe = entity.hasCorrectRecipe(world);
-
-            if (entity.needsPower() || !hasRecipe) {
-                entity.isWorking = false;
-            } else if (!entity.needsPower() && !entity.isWorking) {
-                entity.isWorking = true;
-            }
-            entity.setChanged();
-            world.sendBlockUpdated(pos, state, state, 3);
-
-            if (hasRecipe && entity.storedPower >= POWER_PRE_TICK) {
-                entity.increaseProgress();
-                entity.storedPower -= POWER_PRE_TICK;
-                if (entity.hasCraftFinished()) {
-                    entity.craftItem(world);
-                    entity.resetProgress();
-                }
-            } else {
-                entity.resetProgress();
-            }
-        } else {
-            entity.resetProgress();
-        }
-        entity.setChanged();
     }
 
     @Override
@@ -129,30 +90,6 @@ public class ElectricMiningRigMkIIBlockEntity extends BlockEntity implements Geo
     }
 
     @Override
-    public void receiveElectricCharge(int amount) {
-        this.storedPower += amount;
-        if (this.storedPower > 100) {
-            this.storedPower = 100;
-        }
-    }
-
-    @Override
-    public boolean needsPower() {
-        return this.storedPower < POWER_PRE_TICK;
-    }
-
-    @Override
-    public int getRequiredPower() {
-        return POWER_PRE_TICK;
-    }
-
-    public NonNullList<ItemStack> getItems() {
-        NonNullList<ItemStack> items = NonNullList.withSize(1, ItemStack.EMPTY);
-        items.set(OUTPUT_SLOT, this.itemStackHandler.getStackInSlot(OUTPUT_SLOT));
-        return items;
-    }
-
-    @Override
     public Component getDisplayName() {
         return Component.translatable("blockEntity.electric_mining_rig_mk_ii");
     }
@@ -161,23 +98,19 @@ public class ElectricMiningRigMkIIBlockEntity extends BlockEntity implements Geo
     public @Nullable AbstractContainerMenu createMenu(int pContainerId, Inventory pPlayerInventory, Player pPlayer) {
         return new ElectricMiningRigMkIIScreenHandler(pContainerId, pPlayerInventory, this, this.propertyDelegate);
     }
-
-    private void resetProgress() {
-        this.progress = 0;
-    }
-
-    private void craftItem(Level world) {
-        Optional<RecipeHolder<OreRigRecipe>> match = getMatchRecipe(world);
-
-        if (match.isPresent()) {
-            ItemStack result = match.get().value().getResultItem(world.registryAccess());
+    
+    @Override
+    protected void craftItem(Level world) {
+        getMatchRecipe(world).ifPresent(r -> {
+            ItemStack result = r.value().getResultItem(world.registryAccess());
             ItemStack outputStack = itemStackHandler.getStackInSlot(OUTPUT_SLOT);
             itemStackHandler.setStackInSlot(OUTPUT_SLOT,
                     new ItemStack(result.getItem(), outputStack.getCount() + result.getCount()));
-        }
+        });
     }
 
-    private Optional<RecipeHolder<OreRigRecipe>> getMatchRecipe(Level world) {
+    @Override
+    protected Optional<RecipeHolder<OreRigRecipe>> getMatchRecipe(Level world) {
         SimpleContainer inv = new SimpleContainer(1);
         BlockState below = world.getBlockState(this.getBlockPos().below());
         ItemStack belowStack = below.getBlock().asItem().getDefaultInstance();
@@ -188,51 +121,14 @@ public class ElectricMiningRigMkIIBlockEntity extends BlockEntity implements Geo
                 .getRecipeFor(ModRecipes.ORE_RIG_TYPE.get(), input, world);
     }
 
-    private boolean hasCraftFinished() {
-        return this.progress >= this.maxProgress;
-    }
-
-    private void increaseProgress() {
-        this.progress++;
-    }
-
-    private boolean hasCorrectRecipe(Level world) {
+    @Override
+    protected boolean hasCorrectRecipe(Level world) {
         Optional<RecipeHolder<OreRigRecipe>> match = getMatchRecipe(world);
-
         if (match.isPresent()) {
             ItemStack result = match.get().value().getResultItem(world.registryAccess());
-            return canInsertItem(result);
+            return canOutputAccept(result);
         }
         return false;
-    }
-
-    private boolean canInsertItem(ItemStack item) {
-        ItemStack outputStack = itemStackHandler.getStackInSlot(OUTPUT_SLOT);
-        return outputStack.isEmpty() || (outputStack.getItem() == item.getItem()
-                && outputStack.getCount() + item.getCount() <= outputStack.getMaxStackSize());
-    }
-
-    private boolean isOutputSlotAvailable() {
-        ItemStack outputStack = itemStackHandler.getStackInSlot(OUTPUT_SLOT);
-        return outputStack.isEmpty() || outputStack.getCount() < outputStack.getMaxStackSize();
-    }
-
-    @Override
-    protected void saveAdditional(CompoundTag tag, HolderLookup.Provider registries) {
-        super.saveAdditional(tag, registries);
-        tag.put("inventory", itemStackHandler.serializeNBT(registries));
-        tag.putInt("progress", this.progress);
-        tag.putBoolean("isWorking", this.isWorking);
-        tag.putInt("storedPower", this.storedPower);
-    }
-
-    @Override
-    protected void loadAdditional(CompoundTag tag, HolderLookup.Provider registries) {
-        super.loadAdditional(tag, registries);
-        itemStackHandler.deserializeNBT(registries, tag.getCompound("inventory"));
-        this.progress = tag.getInt("progress");
-        this.isWorking = tag.getBoolean("isWorking");
-        this.storedPower = tag.getInt("storedPower");
     }
 
     @Override
@@ -243,9 +139,5 @@ public class ElectricMiningRigMkIIBlockEntity extends BlockEntity implements Geo
     @Override
     public CompoundTag getUpdateTag(HolderLookup.Provider registries) {
         return saveWithFullMetadata(registries);
-    }
-
-    public @Nullable IItemHandler getItemStackHandler() {
-        return itemStackHandler;
     }
 }

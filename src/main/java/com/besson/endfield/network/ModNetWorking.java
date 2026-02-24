@@ -8,6 +8,7 @@ public class ModNetWorking {
     public static void register(RegisterPayloadHandlersEvent event) {
         var registry = event.registrar(PROTOCOL);
         registry.playToServer(CycleRecipePacket.TYPE, CycleRecipePacket.CODEC, CycleRecipePacket::handle);
+        registry.playToServer(SwitchPacket.TYPE, SwitchPacket.CODEC, SwitchPacket::handle);
     }
 
 }

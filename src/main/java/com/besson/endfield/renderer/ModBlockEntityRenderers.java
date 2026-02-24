@@ -47,5 +47,7 @@ public class ModBlockEntityRenderers {
                 SeedPickingUnitRenderer::new);
         event.registerBlockEntityRenderer(ModBlockEntities.SHREDDING_UNIT.get(),
                 ShreddingUnitRenderer::new);
+        event.registerBlockEntityRenderer(ModBlockEntities.BELT.get(),
+                BeltRenderer::new);
     }
 }

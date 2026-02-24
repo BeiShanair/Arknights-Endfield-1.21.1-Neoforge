@@ -10,6 +10,7 @@ import net.minecraft.core.registries.Registries;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
+import net.minecraft.world.Container;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.Recipe;
@@ -41,9 +42,13 @@ public record CrafterRecipe(Map<Item, Integer> required, ItemStack output) imple
 
     @Override
     public ItemStack assemble(CrafterRecipeInput input, HolderLookup.Provider registries) {
+        return output.copy();
+    }
+
+    public void consumeInputs(Container input) {
         for (Map.Entry<Item, Integer> entry : required.entrySet()) {
             int need = entry.getValue();
-            for (int i = 0; i < input.size(); i++) {
+            for (int i = 0; i < input.getContainerSize(); i++) {
                 ItemStack stack = input.getItem(i);
                 if (stack.getItem().equals(entry.getKey().asItem())) {
                     int removed = Math.min(stack.getCount(), need);
@@ -53,9 +58,8 @@ public record CrafterRecipe(Map<Item, Integer> required, ItemStack output) imple
                 }
             }
         }
-        return output.copy();
     }
-
+    
     @Override
     public boolean canCraftInDimensions(int pWidth, int pHeight) {
         return true;

@@ -1,4 +1,4 @@
-package com.besson.endfield.power;
+package com.besson.endfield.util;
 
 import com.besson.endfield.ArknightsEndField;
 import net.minecraft.core.BlockPos;
@@ -7,7 +7,6 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.level.saveddata.SavedData;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
-import net.neoforged.fml.common.Mod;
 import net.neoforged.neoforge.event.tick.ServerTickEvent;
 
 import java.util.HashMap;
