@@ -39,7 +39,7 @@ reimagined in the Minecraft universe.
 
 ## 联系方式 / Contact
 作者：`北山_Besson / Beishan_Besson`  
-仓库地址：`-`
+仓库地址：`https://github.com/TimWangZi/Arknights-Endfield-1.21.1-Neoforge`
 
 ---
 
@@ -50,6 +50,22 @@ reimagined in the Minecraft universe.
 ## 模组依赖 / Dependencies
 - NeoForge Loader >= 21.1.215
 - Geckolib4 >= 4.8.2
+
+## 版本发布 / Release
+- 最新发布标签：`v0.1.5-1.21.1-beta.2`
+- Release 页面：`https://github.com/TimWangZi/Arknights-Endfield-1.21.1-Neoforge/releases`
+- 推送 `v*` 标签后，GitHub Actions 会自动构建并上传 jar 到 Release 资产
+
+## 安装 / Installation
+- 从 Release 页面下载 jar 文件
+- 将 jar 放入 Minecraft 的 `mods` 目录
+- 确保已安装依赖：NeoForge 与 GeckoLib
+- 不要和原版 `arknights_endfield` 同时加载（`mod_id` 相同会冲突）
+
+## 最近更新 / Recent Updates
+- 新增下界合金矿脉（仅下界自然生成）
+- 新增矿机配方：下界合金矿脉产出远古残骸
+- 远古残骸矿机产速调整为 `30s/个`
 
 ## 关于
 - 这是一个将游戏`《明日方舟：终末地》`中的集成工业设施加入到`Minecraft`中的模组

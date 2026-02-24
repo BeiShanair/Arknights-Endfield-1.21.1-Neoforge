@@ -49,9 +49,27 @@ public class CrafterRecipeCategory implements IRecipeCategory<CrafterRecipe> {
         return this.icon;
     }
 
+    // getBackground应该被弃用
     @Override
     public @Nullable IDrawable getBackground() {
         return background;
+    }
+    @Override
+    public int getWidth() {
+        if (background == null) {
+            return 168; //width
+        }else{
+            return background.getWidth();
+        }
+    }
+
+    @Override
+    public int getHeight() {
+        if (background == null) {
+            return 76; //width
+        }else{
+            return background.getWidth();
+        }
     }
 
     @Override

@@ -4,6 +4,7 @@ import com.besson.endfield.blockEntity.ModBlockEntities;
 import com.besson.endfield.recipe.ModRecipes;
 import com.besson.endfield.recipe.custom.OreRigRecipe;
 import com.besson.endfield.screen.custom.PortableOriginiumRigScreenHandler;
+import com.besson.endfield.util.RigProductionSpeedInquiry;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.core.NonNullList;
@@ -168,6 +169,7 @@ public class PortableOriginiumRigBlockEntity extends BlockEntity implements GeoB
     private void resetProgress() {
         this.progress = 0;
     }
+    private void setMaxProgress(int num) { this.maxProgress = num; }
 
     private void craftItem(Level world) {
 
@@ -186,6 +188,7 @@ public class PortableOriginiumRigBlockEntity extends BlockEntity implements GeoB
         SimpleContainer inv = new SimpleContainer(1);
         BlockState belowState = world.getBlockState(this.getBlockPos().below());
         ItemStack belowStack = belowState.getBlock().asItem().getDefaultInstance();
+        //System.out.println("The block below is:" + belowState.getBlock().asItem().getDescriptionId());
         inv.setItem(0, belowStack);
 
         SingleRecipeInput input = new SingleRecipeInput(inv.getItem(0));
@@ -208,6 +211,7 @@ public class PortableOriginiumRigBlockEntity extends BlockEntity implements GeoB
 
         if (match.isPresent()) {
             ItemStack result = match.get().value().getResultItem(world.registryAccess());
+            setMaxProgress(RigProductionSpeedInquiry.inquiryMaxProcess_normal(result.getDescriptionId()));
             return canInsertItem(result);
         }
         return false;

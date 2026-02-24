@@ -14,10 +14,12 @@ import net.minecraft.world.level.block.state.BlockState;
 import org.jetbrains.annotations.Nullable;
 
 public class ElectricPylonBlock extends ModBlockEntityWithFacing {
+
     private static final MapCodec<ElectricPylonBlock> CODEC = simpleCodec(ElectricPylonBlock::new);
     public ElectricPylonBlock(Properties pProperties) {
         super(pProperties);
     }
+
 
     @Override
     protected MapCodec<? extends BaseEntityBlock> codec() {
@@ -27,5 +29,13 @@ public class ElectricPylonBlock extends ModBlockEntityWithFacing {
     @Override
     public @Nullable BlockEntity newBlockEntity(BlockPos pPos, BlockState pState) {
         return new ElectricPylonBlockEntity(pPos, pState);
+    }
+
+    @Nullable
+    @Override
+    public <T extends BlockEntity> BlockEntityTicker<T> getTicker(Level level, BlockState state, BlockEntityType<T> type) {
+        // 仅服务端执行 Tick，客户端返回 null
+        return level.isClientSide() ? null :
+                createTickerHelper(type, ModBlockEntities.ELECTRIC_PYLON.get(), ElectricPylonBlockEntity::tick);
     }
 }

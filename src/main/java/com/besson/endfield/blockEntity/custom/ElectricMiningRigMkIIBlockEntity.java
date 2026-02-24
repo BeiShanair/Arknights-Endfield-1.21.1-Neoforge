@@ -5,6 +5,7 @@ import com.besson.endfield.blockEntity.ModBlockEntities;
 import com.besson.endfield.recipe.ModRecipes;
 import com.besson.endfield.recipe.custom.OreRigRecipe;
 import com.besson.endfield.screen.custom.ElectricMiningRigMkIIScreenHandler;
+import com.besson.endfield.util.RigProductionSpeedInquiry;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.core.NonNullList;
@@ -165,6 +166,7 @@ public class ElectricMiningRigMkIIBlockEntity extends BlockEntity implements Geo
     private void resetProgress() {
         this.progress = 0;
     }
+    private void setMaxProgress(int num) { this.maxProgress = num; }
 
     private void craftItem(Level world) {
         Optional<RecipeHolder<OreRigRecipe>> match = getMatchRecipe(world);
@@ -201,6 +203,7 @@ public class ElectricMiningRigMkIIBlockEntity extends BlockEntity implements Geo
 
         if (match.isPresent()) {
             ItemStack result = match.get().value().getResultItem(world.registryAccess());
+            setMaxProgress(RigProductionSpeedInquiry.inquiryMaxProcess_highspeed(result.getDescriptionId()));
             return canInsertItem(result);
         }
         return false;

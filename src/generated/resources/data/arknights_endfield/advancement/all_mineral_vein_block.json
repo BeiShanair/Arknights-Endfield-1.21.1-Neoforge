@@ -36,6 +36,16 @@
           },
           {
             "items": [
+              "arknights_endfield:zinc_mineral_vein_block"
+            ]
+          },
+          {
+            "items": [
+              "arknights_endfield:netherite_mineral_vein_block"
+            ]
+          },
+          {
+            "items": [
               "arknights_endfield:gold_mineral_vein_block"
             ]
           },

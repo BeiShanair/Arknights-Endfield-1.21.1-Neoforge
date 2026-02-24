@@ -106,6 +106,10 @@ public class ModBlocks {
             () -> new Block(BlockBehaviour.Properties.of().strength(5f, 5f).requiresCorrectToolForDrops()));
     public static final DeferredBlock<Block> IRON_MINERAL_VEIN_BLOCK = registerBlocks("iron_mineral_vein_block",
             () -> new Block(BlockBehaviour.Properties.of().strength(5f, 5f).requiresCorrectToolForDrops()));
+    public static final DeferredBlock<Block> ZINC_MINERAL_VEIN_BLOCK = registerBlocks("zinc_mineral_vein_block",
+            () -> new Block(BlockBehaviour.Properties.of().strength(5f, 5f).requiresCorrectToolForDrops()));
+    public static final DeferredBlock<Block> NETHERITE_MINERAL_VEIN_BLOCK = registerBlocks("netherite_mineral_vein_block",
+            () -> new Block(BlockBehaviour.Properties.of().strength(6f, 6f).requiresCorrectToolForDrops()));
     public static final DeferredBlock<Block> LAPIS_MINERAL_VEIN_BLOCK = registerBlocks("lapis_mineral_vein_block",
             () -> new Block(BlockBehaviour.Properties.of().strength(5f, 5f).requiresCorrectToolForDrops()));
     public static final DeferredBlock<Block> REDSTONE_MINERAL_VEIN_BLOCK = registerBlocks("redstone_mineral_vein_block",

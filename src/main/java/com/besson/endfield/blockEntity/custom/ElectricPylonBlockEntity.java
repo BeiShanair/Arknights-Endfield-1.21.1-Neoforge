@@ -12,8 +12,8 @@ import net.minecraft.network.protocol.game.ClientboundBlockEntityDataPacket;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
-import net.minecraft.world.phys.AABB;
 import org.jetbrains.annotations.Nullable;
 import software.bernie.geckolib.animatable.GeoBlockEntity;
 import software.bernie.geckolib.animatable.instance.AnimatableInstanceCache;
@@ -27,14 +27,19 @@ import java.util.List;
 
 public class ElectricPylonBlockEntity extends BlockEntity implements GeoBlockEntity {
     private BlockPos connectedNode;
-
     private final AnimatableInstanceCache cache = GeckoLibUtil.createInstanceCache(this);
     private boolean registeredToManager = false;
+
+    // 新增：标记是否已完成首次节点检测（避免重复遍历）
+    private boolean firstNodeDetectDone = false;
+    // 新增：Tick 间隔（每20刻执行一次遍历，减少性能消耗）
+    private static final int TICK_INTERVAL = 20;
 
     public ElectricPylonBlockEntity(BlockPos pos, BlockState state) {
         super(ModBlockEntities.ELECTRIC_PYLON.get(), pos, state);
     }
 
+    // 1. 清理 setLevel()：仅保留电力网络注册，移除所有遍历/检测逻辑
     @Override
     public void setLevel(Level pLevel) {
         super.setLevel(pLevel);
@@ -53,41 +58,62 @@ public class ElectricPylonBlockEntity extends BlockEntity implements GeoBlockEnt
             });
             registeredToManager = true;
         }
+        // 移除所有方块遍历、节点检测、状态同步代码
+    }
 
-        BlockPos pos = this.getBlockPos();
+    // 将供电检测逻辑写到了Tick中
+    public static void tick(Level level, BlockPos pos, BlockState state, ElectricPylonBlockEntity pylon) {
+        if (level.isClientSide()) return;
 
-        if (connectedNode == null || pLevel.getBlockEntity(connectedNode) == null) {
-            BlockPos closest = null;
-            double closestDist = Double.MAX_VALUE;
+        // 20tk检测一次是否有电
+        if (level.getGameTime() % TICK_INTERVAL != 0) return;
 
-            for (BlockPos p: BlockPos.betweenClosed(pos.offset(-30, -30, -30), pos.offset(30, 30, 30))) {
-                if (p.equals(pos)) continue;
-
-                BlockEntity candidate = pLevel.getBlockEntity(p);
-
-                if (candidate instanceof ProtocolAnchorCoreBlockEntity || candidate instanceof RelayTowerBlockEntity) {
-                    double d = pos.distSqr(p);
-                    if (d < closestDist) {
-                        closest = p.immutable();
-                        closestDist = d;
-                    }
-                }
-            }
-            connectedNode = closest;
-            setChanged(pLevel, pos, this.getBlockState());
-            pLevel.sendBlockUpdated(pos, this.getBlockState(), this.getBlockState(), 3);
+        if (!pylon.firstNodeDetectDone) {
+            pylon.detectConnectedNode(level, pos);
+            pylon.firstNodeDetectDone = true;
+            return;
+        }
+        if (pylon.connectedNode == null || level.getBlockEntity(pylon.connectedNode) == null) {
+            pylon.detectConnectedNode(level, pos);
         }
     }
 
+    // 3. 独立的节点检测方法（迁移自 setLevel()）
+    private void detectConnectedNode(Level level, BlockPos pos) {
+        BlockPos closest = null;
+        double closestDist = Double.MAX_VALUE;
+        // 优化：缩小遍历半径（30→15），减少性能消耗
+        int searchRadius = 15;
+
+        for (BlockPos p : BlockPos.betweenClosed(pos.offset(-searchRadius, -searchRadius, -searchRadius), pos.offset(searchRadius, searchRadius, searchRadius))) {
+            if (p.equals(pos)) continue;
+
+            BlockEntity candidate = level.getBlockEntity(p);
+            if (candidate instanceof ProtocolAnchorCoreBlockEntity || candidate instanceof RelayTowerBlockEntity) {
+                double d = pos.distSqr(p);
+                if (d < closestDist) {
+                    closest = p.immutable();
+                    closestDist = d;
+                }
+            }
+        }
+
+        // 更新节点并同步状态
+        this.connectedNode = closest;
+        this.setChanged();
+        level.sendBlockUpdated(pos, this.getBlockState(), this.getBlockState(), 3);
+    }
+
+    // 4. 保留原有电力分配逻辑（优化遍历范围）
     private void distributeToSurroundings(Integer amount) {
         if (level == null || amount <= 0) return;
         List<ElectrifiableDevice> devices = new ArrayList<>();
-        for (BlockPos target: BlockPos.betweenClosed(getBlockPos().offset(-10, -10, -10), getBlockPos().offset(10, 10, 10))) {
+        // 优化：缩小遍历范围（10→8），减少 getBlockEntity() 调用
+        int range = 8;
+        for (BlockPos target : BlockPos.betweenClosed(getBlockPos().offset(-range, -range, -range), getBlockPos().offset(range, range, range))) {
             BlockEntity be = level.getBlockEntity(target);
-            if (be instanceof ElectrifiableDevice device) {
-                if (device.needsPower()) {
-                    devices.add(device);
-                }
+            if (be instanceof ElectrifiableDevice device && device.needsPower()) {
+                devices.add(device);
             }
         }
         if (devices.isEmpty()) return;
@@ -103,15 +129,15 @@ public class ElectricPylonBlockEntity extends BlockEntity implements GeoBlockEnt
         }
     }
 
+    // 5. 保留原有电力需求计算逻辑（同步优化遍历范围）
     private Integer getSurroundingDemand() {
         if (level == null) return 0;
         int totalDemand = 0;
-        for (BlockPos target: BlockPos.betweenClosed(getBlockPos().offset(-10, -10, -10), getBlockPos().offset(10, 10, 10))) {
+        int range = 8;
+        for (BlockPos target : BlockPos.betweenClosed(getBlockPos().offset(-range, -range, -range), getBlockPos().offset(range, range, range))) {
             BlockEntity be = level.getBlockEntity(target);
-            if (be instanceof ElectrifiableDevice device) {
-                if (device.needsPower()) {
-                    totalDemand += device.getRequiredPower();
-                }
+            if (be instanceof ElectrifiableDevice device && device.needsPower()) {
+                totalDemand += device.getRequiredPower();
             }
         }
         return totalDemand;
