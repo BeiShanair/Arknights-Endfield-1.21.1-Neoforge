@@ -1,16 +1,18 @@
 package com.besson.endfield.recipe.custom;
 
 import com.besson.endfield.recipe.ModRecipes;
+import com.mojang.serialization.Codec;
 import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.network.RegistryFriendlyByteBuf;
+import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.*;
 import net.minecraft.world.level.Level;
 
-public record OreRigRecipe(Ingredient input, ItemStack output) implements Recipe<SingleRecipeInput> {
+public record OreRigRecipe(Ingredient input, ItemStack output, int tier) implements Recipe<SingleRecipeInput> {
 
     public Ingredient getInput() {
         return input;
@@ -52,13 +54,15 @@ public record OreRigRecipe(Ingredient input, ItemStack output) implements Recipe
 
         public static final MapCodec<OreRigRecipe> CODEC = RecordCodecBuilder.mapCodec(instance -> instance.group(
                 Ingredient.CODEC.fieldOf("input").forGetter(OreRigRecipe::input),
-                ItemStack.CODEC.fieldOf("output").forGetter(OreRigRecipe::output)
+                ItemStack.CODEC.fieldOf("output").forGetter(OreRigRecipe::output),
+                Codec.INT.optionalFieldOf("tier", 1).forGetter(OreRigRecipe::tier)
         ).apply(instance, OreRigRecipe::new));
 
         public static final StreamCodec<RegistryFriendlyByteBuf, OreRigRecipe> STREAM_CODEC =
                 StreamCodec.composite(
                         Ingredient.CONTENTS_STREAM_CODEC, OreRigRecipe::input,
                         ItemStack.STREAM_CODEC, OreRigRecipe::output,
+                        ByteBufCodecs.VAR_INT, OreRigRecipe::tier,
                         OreRigRecipe::new
                 );
 

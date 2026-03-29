@@ -2,7 +2,13 @@ package com.besson.endfield.blockEntity;
 
 import com.besson.endfield.block.ModBlocks;
 import com.besson.endfield.block.custom.*;
+import com.besson.endfield.block.custom.powering.ProtocolAnchorCorePortBlock;
+import com.besson.endfield.block.custom.powering.ThermalBankBlock;
 import com.besson.endfield.blockEntity.custom.*;
+import com.besson.endfield.blockEntity.custom.powering.*;
+import com.besson.endfield.blockEntity.custom.resourcing.ElectricMiningRigBlockEntity;
+import com.besson.endfield.blockEntity.custom.resourcing.ElectricMiningRigMkIIBlockEntity;
+import com.besson.endfield.blockEntity.custom.resourcing.PortableOriginiumRigBlockEntity;
 import net.minecraft.core.Direction;
 import net.neoforged.neoforge.capabilities.Capabilities;
 import net.neoforged.neoforge.capabilities.RegisterCapabilitiesEvent;
@@ -383,7 +389,13 @@ public class ModCapabilities {
 
         event.registerBlock(Capabilities.ItemHandler.BLOCK, (level, pos, state, blockEntity, context) -> {
             if (blockEntity instanceof ThermalBankBlockEntity be) {
-                return be.getItemStackHandler();
+                if (context == null) {
+                    return be.getItemStackHandler();
+                }
+                Direction facing = blockEntity.getBlockState().getValue(ThermalBankBlock.FACING);
+                if (context == facing) {
+                    return be.getInputHandler();
+                }
             }
             return null;
         }, ModBlocks.THERMAL_BANK.get());
@@ -393,6 +405,10 @@ public class ModCapabilities {
                 if (parent != null) {
                     if (context == null) {
                         return parent.getItemStackHandler();
+                    }
+                    Direction facing = parent.getBlockState().getValue(ThermalBankBlock.FACING);
+                    if (context == facing) {
+                        return parent.getInputHandler();
                     }
                 }
             }

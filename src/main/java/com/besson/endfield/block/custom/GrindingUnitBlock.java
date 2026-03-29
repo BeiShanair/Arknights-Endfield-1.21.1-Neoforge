@@ -6,14 +6,20 @@ import com.besson.endfield.blockEntity.ModBlockEntities;
 import com.besson.endfield.blockEntity.custom.GrindingUnitBlockEntity;
 import com.besson.endfield.blockEntity.custom.GrindingUnitSideBlockEntity;
 import com.mojang.serialization.MapCodec;
+import net.minecraft.ChatFormatting;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
+import net.minecraft.network.chat.Component;
 import net.minecraft.world.Containers;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.TooltipFlag;
+import net.minecraft.world.level.BlockGetter;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.level.LevelReader;
 import net.minecraft.world.level.block.BaseEntityBlock;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.entity.BlockEntityTicker;
@@ -21,6 +27,8 @@ import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.BlockHitResult;
 import org.jetbrains.annotations.Nullable;
+
+import java.util.List;
 
 public class GrindingUnitBlock extends ModBlockEntityWithFacing {
     private static final MapCodec<GrindingUnitBlock> CODEC = simpleCodec(GrindingUnitBlock::new);
@@ -63,26 +71,7 @@ public class GrindingUnitBlock extends ModBlockEntityWithFacing {
                 Containers.dropContents(pLevel, pos, ((GrindingUnitBlockEntity) blockEntity).getItems());
                 pLevel.updateNeighbourForOutputSignal(pos, this);
             }
-
-            Direction facing = pState.getValue(FACING);
-            Direction left = facing.getCounterClockWise();
-            Direction right = facing.getClockWise();
-            Direction back = facing.getOpposite();
-            Direction backLeft = back.getClockWise();
-            Direction backRight = back.getCounterClockWise();
-
-            BlockPos[] adjacentPositions = {
-                    pos.relative(facing),
-                    pos.relative(facing).relative(left), pos.relative(facing).relative(right),
-                    pos.relative(facing).relative(left, 2), pos.relative(facing).relative(right, 2), pos.relative(facing).relative(right, 3),
-                    pos.relative(right), pos.relative(left),
-                    pos.relative(right, 2), pos.relative(right, 3), pos.relative(left, 2),
-                    pos.relative(back), pos.relative(back, 2),
-                    pos.relative(back).relative(backLeft), pos.relative(back).relative(backRight),
-                    pos.relative(back).relative(backLeft, 2), pos.relative(back).relative(backRight, 2), pos.relative(back).relative(backRight, 3),
-                    pos.relative(back, 2).relative(backLeft), pos.relative(back, 2).relative(backRight),
-                    pos.relative(back, 2).relative(backLeft, 2), pos.relative(back, 2).relative(backRight, 2), pos.relative(back, 2).relative(backRight, 3)
-            };
+            BlockPos[] adjacentPositions = getAdjacentPositions(pState, pos);
 
             for (BlockPos p : adjacentPositions) {
                 if (pLevel.getBlockState(p).getBlock() == ModBlocks.GRINDING_UNIT_SIDE.get()) {
@@ -97,25 +86,7 @@ public class GrindingUnitBlock extends ModBlockEntityWithFacing {
     @Override
     public void setPlacedBy(Level pLevel, BlockPos pos, BlockState pState, @Nullable LivingEntity pPlacer, ItemStack pStack) {
         if (!pLevel.isClientSide()) {
-            Direction facing = pState.getValue(FACING);
-            Direction left = facing.getCounterClockWise();
-            Direction right = facing.getClockWise();
-            Direction back = facing.getOpposite();
-            Direction backLeft = back.getClockWise();
-            Direction backRight = back.getCounterClockWise();
-
-            BlockPos[] sidePositions = {
-                    pos.relative(facing),
-                    pos.relative(facing).relative(left), pos.relative(facing).relative(right),
-                    pos.relative(facing).relative(left, 2), pos.relative(facing).relative(right, 2), pos.relative(facing).relative(right, 3),
-                    pos.relative(right), pos.relative(left),
-                    pos.relative(right, 2), pos.relative(right, 3), pos.relative(left, 2),
-                    pos.relative(back), pos.relative(back, 2),
-                    pos.relative(back).relative(backLeft), pos.relative(back).relative(backRight),
-                    pos.relative(back).relative(backLeft, 2), pos.relative(back).relative(backRight, 2), pos.relative(back).relative(backRight, 3),
-                    pos.relative(back, 2).relative(backLeft), pos.relative(back, 2).relative(backRight),
-                    pos.relative(back, 2).relative(backLeft, 2), pos.relative(back, 2).relative(backRight, 2), pos.relative(back, 2).relative(backRight, 3)
-            };
+            BlockPos[] sidePositions = getAdjacentPositions(pState, pos);
 
             for (BlockPos p : sidePositions) {
                 pLevel.setBlockAndUpdate(p, ModBlocks.GRINDING_UNIT_SIDE.get().defaultBlockState().setValue(FACING, pState.getValue(FACING)));
@@ -125,5 +96,47 @@ public class GrindingUnitBlock extends ModBlockEntityWithFacing {
                 }
             }
         }
+    }
+
+    @Override
+    public boolean canSurvive(BlockState pState, LevelReader pLevel, BlockPos pPos) {
+        if (!pLevel.isClientSide()) {
+            BlockPos[] sidePositions = getAdjacentPositions(pState, pPos);
+
+            for (BlockPos p : sidePositions) {
+                if (!pLevel.getBlockState(p).getBlock().defaultBlockState().isAir()) {
+                    return false;
+                }
+            }
+            return true;
+        }
+        return false;
+    }
+
+    private BlockPos[] getAdjacentPositions(BlockState state, BlockPos pos) {
+        Direction facing = state.getValue(FACING);
+        Direction left = facing.getCounterClockWise();
+        Direction right = facing.getClockWise();
+        Direction back = facing.getOpposite();
+        Direction backLeft = back.getClockWise();
+        Direction backRight = back.getCounterClockWise();
+
+        return new BlockPos[]{
+                pos.relative(facing),
+                pos.relative(facing).relative(left), pos.relative(facing).relative(right),
+                pos.relative(facing).relative(left, 2), pos.relative(facing).relative(right, 2), pos.relative(facing).relative(right, 3),
+                pos.relative(right), pos.relative(left),
+                pos.relative(right, 2), pos.relative(right, 3), pos.relative(left, 2),
+                pos.relative(back), pos.relative(back, 2),
+                pos.relative(back).relative(backLeft), pos.relative(back).relative(backRight),
+                pos.relative(back).relative(backLeft, 2), pos.relative(back).relative(backRight, 2), pos.relative(back).relative(backRight, 3),
+                pos.relative(back, 2).relative(backLeft), pos.relative(back, 2).relative(backRight),
+                pos.relative(back, 2).relative(backLeft, 2), pos.relative(back, 2).relative(backRight, 2), pos.relative(back, 2).relative(backRight, 3)
+        };
+    }
+
+    @Override
+    public void appendHoverText(ItemStack pStack, Item.TooltipContext context, List<Component> pTooltip, TooltipFlag pFlag) {
+        pTooltip.add(Component.translatable("endfield.powerCost", 50).withStyle(ChatFormatting.GRAY));
     }
 }

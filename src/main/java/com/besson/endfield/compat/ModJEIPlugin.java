@@ -19,6 +19,9 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.RecipeHolder;
 import net.minecraft.world.item.crafting.RecipeManager;
 
+import java.util.List;
+import java.util.stream.Collectors;
+
 @JeiPlugin
 public class ModJEIPlugin implements IModPlugin {
 
@@ -67,12 +70,6 @@ public class ModJEIPlugin implements IModPlugin {
                 recipeManager.getAllRecipesFor(ModRecipes.GRINDING_UNIT_TYPE.get()).stream().map(RecipeHolder::value).toList());
         registration.addRecipes(MouldingRecipeCategory.MOULDING_UNIT,
                 recipeManager.getAllRecipesFor(ModRecipes.MOULDING_UNIT_TYPE.get()).stream().map(RecipeHolder::value).toList());
-        registration.addRecipes(PortableOriginiumRigRecipeCategory.PORTABLE_ORIGINIUM_RIG,
-                recipeManager.getAllRecipesFor(ModRecipes.ORE_RIG_TYPE.get()).stream().map(RecipeHolder::value).toList());
-        registration.addRecipes(ElectricMiningRigRecipeCategory.ELECTRIC_MINING_RIG,
-                recipeManager.getAllRecipesFor(ModRecipes.ORE_RIG_TYPE.get()).stream().map(RecipeHolder::value).toList());
-        registration.addRecipes(ElectricMiningRigMkIIRecipeCategory.ELECTRIC_MINING_RIG_MK_II,
-                recipeManager.getAllRecipesFor(ModRecipes.ORE_RIG_TYPE.get()).stream().map(RecipeHolder::value).toList());
         registration.addRecipes(PackagingRecipeCategory.PACKAGING,
                 recipeManager.getAllRecipesFor(ModRecipes.PACKAGING_UNIT_TYPE.get()).stream().map(RecipeHolder::value).toList());
         registration.addRecipes(PlantingRecipeCategory.PLANTING_UNIT,
@@ -81,6 +78,18 @@ public class ModJEIPlugin implements IModPlugin {
                 recipeManager.getAllRecipesFor(ModRecipes.SEED_PICKING_UNIT_TYPE.get()).stream().map(RecipeHolder::value).toList());
         registration.addRecipes(ShreddingRecipeCategory.SHREDDING_UNIT,
                 recipeManager.getAllRecipesFor(ModRecipes.SHREDDING_UNIT_TYPE.get()).stream().map(RecipeHolder::value).toList());
+
+        List<OreRigRecipe> all = recipeManager.getAllRecipesFor(ModRecipes.ORE_RIG_TYPE.get()).stream().map(RecipeHolder::value).toList();
+
+        registration.addRecipes(PortableOriginiumRigRecipeCategory.PORTABLE_ORIGINIUM_RIG,
+                all.stream().filter(r -> r.tier() == 1)
+                        .collect(Collectors.toList()));
+        registration.addRecipes(ElectricMiningRigRecipeCategory.ELECTRIC_MINING_RIG,
+                all.stream().filter(r -> r.tier() <= 2)
+                        .collect(Collectors.toList()));
+        registration.addRecipes(ElectricMiningRigMkIIRecipeCategory.ELECTRIC_MINING_RIG_MK_II,
+                all.stream().filter(r -> r.tier() <= 3)
+                        .collect(Collectors.toList()));
     }
 
     @Override

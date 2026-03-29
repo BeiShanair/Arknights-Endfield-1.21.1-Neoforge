@@ -1,11 +1,8 @@
 package com.besson.endfield.screen.custom;
 
 import com.besson.endfield.ArknightsEndField;
-import com.besson.endfield.blockEntity.custom.PortableOriginiumRigBlockEntity;
-import com.mojang.blaze3d.systems.RenderSystem;
+import com.besson.endfield.blockEntity.custom.resourcing.PortableOriginiumRigBlockEntity;
 import net.minecraft.client.gui.GuiGraphics;
-import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
-import net.minecraft.client.renderer.GameRenderer;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.player.Inventory;

@@ -1,6 +1,6 @@
 package com.besson.endfield.screen.custom;
 
-import com.besson.endfield.blockEntity.custom.ThermalBankBlockEntity;
+import com.besson.endfield.blockEntity.custom.powering.ThermalBankBlockEntity;
 import com.besson.endfield.screen.ModScreens;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.FriendlyByteBuf;

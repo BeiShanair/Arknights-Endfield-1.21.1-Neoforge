@@ -2,6 +2,8 @@ package com.besson.endfield.network;
 
 import com.besson.endfield.ArknightsEndField;
 import com.besson.endfield.blockEntity.custom.*;
+import com.besson.endfield.blockEntity.custom.powering.ThermalBankBlockEntity;
+import com.besson.endfield.blockEntity.custom.resourcing.BaseRigBlockEntity;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;

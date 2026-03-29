@@ -1,8 +1,6 @@
 package com.besson.endfield.screen.custom;
 
-import com.besson.endfield.block.ModBlocks;
-import com.besson.endfield.blockEntity.custom.ElectricMiningRigBlockEntity;
-import com.besson.endfield.blockEntity.custom.ElectricMiningRigMkIIBlockEntity;
+import com.besson.endfield.blockEntity.custom.resourcing.ElectricMiningRigBlockEntity;
 import com.besson.endfield.screen.ModScreens;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.FriendlyByteBuf;
@@ -10,7 +8,6 @@ import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.*;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.neoforged.neoforge.capabilities.Capabilities;
 import net.neoforged.neoforge.items.IItemHandler;

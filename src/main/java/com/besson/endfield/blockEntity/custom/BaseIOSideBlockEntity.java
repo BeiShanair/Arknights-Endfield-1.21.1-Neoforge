@@ -1,5 +1,6 @@
 package com.besson.endfield.blockEntity.custom;
 
+import com.besson.endfield.blockEntity.custom.logicitis.BeltBlockEntity;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.HolderLookup;
@@ -65,7 +66,7 @@ public abstract class BaseIOSideBlockEntity extends BlockEntity {
             BlockEntity machineBe = world.getBlockEntity(pos);
             if (machineBe == null) return;
 
-            IItemHandler handler = world.getCapability(Capabilities.ItemHandler.BLOCK, pos, facing);
+            IItemHandler handler = world.getCapability(Capabilities.ItemHandler.BLOCK, pos, facing.getOpposite());
 
             if (handler == null) return;
 

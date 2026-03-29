@@ -13,6 +13,10 @@ import net.neoforged.neoforge.event.entity.player.PlayerEvent;
 @EventBusSubscriber(modid = ArknightsEndField.MOD_ID)
 public class PlayerJoinHandler {
     private static final String DATA_KEY = "protocol_anchor_core";
+    private static final String ORIGINIUM_ORE_KEY = "originium_ore";
+    private static final String FERRIUM_ORE_KEY = "ferrium_ore";
+    private static final String AMETHYST_ORE_KEY = "amethyst_ore";
+
     @SubscribeEvent
     public static void onPlayerJoin(PlayerEvent.PlayerLoggedInEvent event) {
         var player = event.getEntity();
@@ -27,6 +31,33 @@ public class PlayerJoinHandler {
         }
 
         data.putBoolean(DATA_KEY, true);
+        persistentData.put(Player.PERSISTED_NBT_TAG, data);
+
+        if (!data.contains(ORIGINIUM_ORE_KEY)) {
+            ItemStack ore = new ItemStack(ModBlocks.ORIGINIUM_MINERAL_VEIN_BLOCK.get(), 10);
+            if (!player.getInventory().add(ore)) {
+                player.drop(ore, false);
+            }
+        }
+        data.putBoolean(ORIGINIUM_ORE_KEY, true);
+        persistentData.put(Player.PERSISTED_NBT_TAG, data);
+
+        if (!data.contains(FERRIUM_ORE_KEY)) {
+            ItemStack ore = new ItemStack(ModBlocks.FERRIUM_MINERAL_VEIN_BLOCK.get(), 10);
+            if (!player.getInventory().add(ore)) {
+                player.drop(ore, false);
+            }
+        }
+        data.putBoolean(FERRIUM_ORE_KEY, true);
+        persistentData.put(Player.PERSISTED_NBT_TAG, data);
+
+        if (!data.contains(AMETHYST_ORE_KEY)) {
+            ItemStack ore = new ItemStack(ModBlocks.AMETHYST_MINERAL_VEIN_BLOCK.get(), 10);
+            if (!player.getInventory().add(ore)) {
+                player.drop(ore, false);
+            }
+        }
+        data.putBoolean(AMETHYST_ORE_KEY, true);
         persistentData.put(Player.PERSISTED_NBT_TAG, data);
     }
 }
