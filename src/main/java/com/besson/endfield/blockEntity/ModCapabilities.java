@@ -1,11 +1,18 @@
 package com.besson.endfield.blockEntity;
 
 import com.besson.endfield.block.ModBlocks;
-import com.besson.endfield.block.custom.*;
 import com.besson.endfield.block.custom.powering.ProtocolAnchorCorePortBlock;
 import com.besson.endfield.block.custom.powering.ThermalBankBlock;
-import com.besson.endfield.blockEntity.custom.*;
+import com.besson.endfield.block.custom.production1.*;
+import com.besson.endfield.block.custom.production2.FillingUnitBlock;
+import com.besson.endfield.block.custom.production2.GearingUnitBlock;
+import com.besson.endfield.block.custom.production2.GrindingUnitBlock;
+import com.besson.endfield.block.custom.production2.PackagingUnitBlock;
+import com.besson.endfield.blockEntity.custom.logicitis.ProtocolStashBlockEntity;
+import com.besson.endfield.blockEntity.custom.logicitis.ProtocolStashSideBlockEntity;
 import com.besson.endfield.blockEntity.custom.powering.*;
+import com.besson.endfield.blockEntity.custom.production1.*;
+import com.besson.endfield.blockEntity.custom.production2.*;
 import com.besson.endfield.blockEntity.custom.resourcing.ElectricMiningRigBlockEntity;
 import com.besson.endfield.blockEntity.custom.resourcing.ElectricMiningRigMkIIBlockEntity;
 import com.besson.endfield.blockEntity.custom.resourcing.PortableOriginiumRigBlockEntity;
@@ -415,5 +422,21 @@ public class ModCapabilities {
             return null;
          }, ModBlocks.THERMAL_BANK_SIDE.get()
         );
+
+        event.registerBlock(Capabilities.ItemHandler.BLOCK, (level, pos, state, blockEntity, context) -> {
+            if (blockEntity instanceof ProtocolStashBlockEntity be) {
+                return be.getItemStackHandler();
+            }
+            return null;
+        }, ModBlocks.PROTOCOL_STASH.get());
+        event.registerBlock(Capabilities.ItemHandler.BLOCK, (level, pos, state, blockEntity, context) -> {
+            if (blockEntity instanceof ProtocolStashSideBlockEntity be) {
+                ProtocolStashBlockEntity parent = be.getParentBlock();
+                if (parent != null) {
+                    return parent.getItemStackHandler();
+                }
+            }
+            return null;
+        }, ModBlocks.PROTOCOL_STASH_SIDE.get());
     }
 }

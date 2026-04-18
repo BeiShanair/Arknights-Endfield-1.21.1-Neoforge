@@ -25,7 +25,7 @@ public class BeltBlockEntity extends BlockEntity {
 
     public float progress = 0f;
     public float lastProgress = 0f;
-    public static final float SPEED = 0.025f;
+    public static final float SPEED = 0.026f;
     public Direction travelDirection = null;
 
     public BeltBlockEntity(BlockPos pos, BlockState state) {
@@ -167,7 +167,14 @@ public class BeltBlockEntity extends BlockEntity {
         if (forwardBE instanceof ConvergerBlockEntity converger) {
             return converger.tryMerge(world, forwardPos, next, this);
         }
-        
+        if (forwardBE instanceof DepotLoaderBlockEntity loader) {
+            if (loader.sendItemToGlobalStorage(world, this.storedItem)) {
+                this.storedItem = ItemStack.EMPTY;
+                return true;
+            }
+            return false;
+        }
+
         if (forwardBE instanceof BeltBlockEntity forwardBelt) {
             if (forwardBelt.storedItem.isEmpty()) {
                 forwardBelt.storedItem = this.storedItem;

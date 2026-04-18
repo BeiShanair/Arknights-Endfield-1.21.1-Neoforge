@@ -4,7 +4,7 @@ import com.besson.endfield.block.ElectrifiableDevice;
 import com.besson.endfield.blockEntity.ModBlockEntities;
 import com.besson.endfield.recipe.ModRecipes;
 import com.besson.endfield.recipe.custom.OreRigRecipe;
-import com.besson.endfield.screen.custom.ElectricMiningRigMkIIScreenHandler;
+import com.besson.endfield.screen.custom.resourcing.ElectricMiningRigMkIIScreenHandler;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;

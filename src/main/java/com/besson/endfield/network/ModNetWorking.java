@@ -9,6 +9,9 @@ public class ModNetWorking {
         var registry = event.registrar(PROTOCOL);
         registry.playToServer(CycleRecipePacket.TYPE, CycleRecipePacket.CODEC, CycleRecipePacket::handle);
         registry.playToServer(SwitchPacket.TYPE, SwitchPacket.CODEC, SwitchPacket::handle);
+        registry.playToServer(OpenStoragePacket.TYPE, OpenStoragePacket.CODEC, OpenStoragePacket::handle);
+        registry.playToServer(RequestItemPacket.TYPE, RequestItemPacket.CODEC, RequestItemPacket::handle);
+        registry.playToClient(SyncStoragePacket.TYPE, SyncStoragePacket.CODEC, SyncStoragePacket::handle);
     }
 
 }

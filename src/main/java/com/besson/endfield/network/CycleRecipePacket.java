@@ -6,6 +6,8 @@ import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.entity.player.Player;
 import net.neoforged.neoforge.network.handling.IPayloadContext;
 import org.jetbrains.annotations.NotNull;
 
@@ -16,10 +18,13 @@ public class CycleRecipePacket implements CustomPacketPayload {
     public static final StreamCodec<FriendlyByteBuf, CycleRecipePacket> CODEC = StreamCodec.of(
             (packet, buf) -> {}, buf -> new CycleRecipePacket());
 
-    public static void handle(CycleRecipePacket packet, IPayloadContext ctx) {
+    public static void handle(CycleRecipePacket msg, IPayloadContext ctx) {
         ctx.enqueueWork(() -> {
-            var player = ctx.player();
-            if (player != null && player.containerMenu instanceof CrafterScreenHandler screenHandler) {
+            Player player = ctx.player();
+
+            if (!(player instanceof ServerPlayer serverPlayer)) return;
+
+            if (serverPlayer != null && serverPlayer.containerMenu instanceof CrafterScreenHandler screenHandler) {
                 screenHandler.changeRecipe();
             }
         });

@@ -5,6 +5,8 @@ import com.besson.endfield.block.custom.*;
 import com.besson.endfield.block.custom.combat.*;
 import com.besson.endfield.block.custom.logicitis.*;
 import com.besson.endfield.block.custom.powering.*;
+import com.besson.endfield.block.custom.production1.*;
+import com.besson.endfield.block.custom.production2.*;
 import com.besson.endfield.block.custom.resourcing.ElectricMiningRigBlock;
 import com.besson.endfield.block.custom.resourcing.ElectricMiningRigMkIIBlock;
 import com.besson.endfield.block.custom.resourcing.PortableOriginiumRigBlock;
@@ -110,6 +112,23 @@ public class ModBlocks {
             () -> new ConvergerBlock(BlockBehaviour.Properties.of().strength(0.5f).noOcclusion()));
     public static final DeferredBlock<SplitterBlock> SPLITTER = registerBlocks("splitter",
             () -> new SplitterBlock(BlockBehaviour.Properties.of().strength(0.5f).noOcclusion()));
+
+    public static final DeferredBlock<DepotBusSectionBlock> DEPOT_BUS_SECTION = registerBlocksWithoutItem("depot_bus_section",
+            () -> new DepotBusSectionBlock(BlockBehaviour.Properties.of().strength(0.5f).noOcclusion()));
+    public static final DeferredBlock<DepotBusSectionSideBlock> DEPOT_BUS_SECTION_SIDE = registerBlocks("depot_bus_section_side",
+            () -> new DepotBusSectionSideBlock(BlockBehaviour.Properties.of().strength(0.5f).noOcclusion()));
+    public static final DeferredBlock<DepotLoaderBlock> DEPOT_LOADER = registerBlocksWithoutItem("depot_loader",
+            () -> new DepotLoaderBlock(BlockBehaviour.Properties.of().strength(0.5f).noOcclusion()));
+    public static final DeferredBlock<DepotLoaderSideBlock> DEPOT_LOADER_SIDE = registerBlocks("depot_loader_side",
+            () -> new DepotLoaderSideBlock(BlockBehaviour.Properties.of().strength(0.5f).noOcclusion()));
+    public static final DeferredBlock<DepotUnloaderBlock> DEPOT_UNLOADER = registerBlocksWithoutItem("depot_unloader",
+            () -> new DepotUnloaderBlock(BlockBehaviour.Properties.of().strength(0.5f).noOcclusion()));
+    public static final DeferredBlock<DepotUnloaderSideBlock> DEPOT_UNLOADER_SIDE = registerBlocks("depot_unloader_side",
+            () -> new DepotUnloaderSideBlock(BlockBehaviour.Properties.of().strength(0.5f).noOcclusion()));
+    public static final DeferredBlock<ProtocolStashBlock> PROTOCOL_STASH = registerBlocksWithoutItem("protocol_stash",
+            () -> new ProtocolStashBlock(BlockBehaviour.Properties.of().strength(0.5f).noOcclusion()));
+    public static final DeferredBlock<ProtocolStashSideBlock> PROTOCOL_STASH_SIDE = registerBlocks("protocol_stash_side",
+            () -> new ProtocolStashSideBlock(BlockBehaviour.Properties.of().strength(0.5f).noOcclusion()));
 
     public static final DeferredBlock<BeamTowerBlock> BEAM_TOWER = registerBlocksWithoutItem("beam_tower",
             () -> new BeamTowerBlock(BlockBehaviour.Properties.of().strength(0.5f).noOcclusion()));

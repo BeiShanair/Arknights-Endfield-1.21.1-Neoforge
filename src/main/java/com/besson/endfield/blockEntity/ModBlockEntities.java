@@ -6,6 +6,8 @@ import com.besson.endfield.blockEntity.custom.*;
 import com.besson.endfield.blockEntity.custom.combat.*;
 import com.besson.endfield.blockEntity.custom.logicitis.*;
 import com.besson.endfield.blockEntity.custom.powering.*;
+import com.besson.endfield.blockEntity.custom.production1.*;
+import com.besson.endfield.blockEntity.custom.production2.*;
 import com.besson.endfield.blockEntity.custom.resourcing.ElectricMiningRigBlockEntity;
 import com.besson.endfield.blockEntity.custom.resourcing.ElectricMiningRigMkIIBlockEntity;
 import com.besson.endfield.blockEntity.custom.resourcing.PortableOriginiumRigBlockEntity;
@@ -163,6 +165,31 @@ public class ModBlockEntities {
     public static final Supplier<BlockEntityType<FEConverterBlockEntity>> FE_CONVERTER =
             BLOCK_ENTITIES.register("fe_converter", () -> BlockEntityType.Builder.of(
                     FEConverterBlockEntity::new, ModBlocks.FE_CONVERTER_BLOCK.get()).build(null));
+
+    public static final Supplier<BlockEntityType<DepotBusSectionBlockEntity>> DEPOT_BUS_SECTION =
+            BLOCK_ENTITIES.register("depot_bus_section", () -> BlockEntityType.Builder.of(
+                    DepotBusSectionBlockEntity::new, ModBlocks.DEPOT_BUS_SECTION.get()).build(null));
+    public static final Supplier<BlockEntityType<DepotBusSectionSideBlockEntity>> DEPOT_BUS_SECTION_SIDE =
+            BLOCK_ENTITIES.register("depot_bus_section_side", () -> BlockEntityType.Builder.of(
+                    DepotBusSectionSideBlockEntity::new, ModBlocks.DEPOT_BUS_SECTION_SIDE.get()).build(null));
+    public static final Supplier<BlockEntityType<DepotLoaderBlockEntity>> DEPOT_LOADER =
+            BLOCK_ENTITIES.register("depot_loader", () -> BlockEntityType.Builder.of(
+                    DepotLoaderBlockEntity::new, ModBlocks.DEPOT_LOADER.get()).build(null));
+    public static final Supplier<BlockEntityType<DepotLoaderSideBlockEntity>> DEPOT_LOADER_SIDE =
+            BLOCK_ENTITIES.register("depot_loader_side", () -> BlockEntityType.Builder.of(
+                    DepotLoaderSideBlockEntity::new, ModBlocks.DEPOT_LOADER_SIDE.get()).build(null));
+    public static final Supplier<BlockEntityType<DepotUnloaderBlockEntity>> DEPOT_UNLOADER =
+            BLOCK_ENTITIES.register("depot_unloader", () -> BlockEntityType.Builder.of(
+                    DepotUnloaderBlockEntity::new, ModBlocks.DEPOT_UNLOADER.get()).build(null));
+    public static final Supplier<BlockEntityType<DepotUnloaderSideBlockEntity>> DEPOT_UNLOADER_SIDE =
+            BLOCK_ENTITIES.register("depot_unloader_side", () -> BlockEntityType.Builder.of(
+                    DepotUnloaderSideBlockEntity::new, ModBlocks.DEPOT_UNLOADER_SIDE.get()).build(null));
+    public static final Supplier<BlockEntityType<ProtocolStashBlockEntity>> PROTOCOL_STASH =
+            BLOCK_ENTITIES.register("protocol_stash", () -> BlockEntityType.Builder.of(
+                    ProtocolStashBlockEntity::new, ModBlocks.PROTOCOL_STASH.get()).build(null));
+    public static final Supplier<BlockEntityType<ProtocolStashSideBlockEntity>> PROTOCOL_STASH_SIDE =
+            BLOCK_ENTITIES.register("protocol_stash_side", () -> BlockEntityType.Builder.of(
+                    ProtocolStashSideBlockEntity::new, ModBlocks.PROTOCOL_STASH_SIDE.get()).build(null));
 
     public static void register(IEventBus eventBus) {
         BLOCK_ENTITIES.register(eventBus);

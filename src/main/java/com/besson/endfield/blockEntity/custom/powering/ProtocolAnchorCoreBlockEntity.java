@@ -1,11 +1,11 @@
 package com.besson.endfield.blockEntity.custom.powering;
 
 import com.besson.endfield.blockEntity.ModBlockEntities;
-import com.besson.endfield.util.NodeEntry;
-import com.besson.endfield.util.NodeType;
-import com.besson.endfield.util.PowerNetworkManager;
-import com.besson.endfield.screen.custom.ProtocolAnchorCoreScreenHandler;
-import com.besson.endfield.util.PowerNetworkNodeManager;
+import com.besson.endfield.util.power.NodeEntry;
+import com.besson.endfield.util.power.NodeType;
+import com.besson.endfield.util.power.PowerNetworkManager;
+import com.besson.endfield.screen.custom.powering.ProtocolAnchorCoreScreenHandler;
+import com.besson.endfield.util.power.PowerNetworkNodeManager;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.core.NonNullList;
@@ -40,6 +40,7 @@ public class ProtocolAnchorCoreBlockEntity extends BlockEntity implements GeoBlo
     private boolean needsInit = true;
 
     private boolean registeredToManager = false;
+    private BlockPos[] forcedChunks = null;
 
     private final ItemStackHandler itemStackHandler = new ItemStackHandler(54) {
         @Override
@@ -67,6 +68,36 @@ public class ProtocolAnchorCoreBlockEntity extends BlockEntity implements GeoBlo
             PowerNetworkNodeManager manager = PowerNetworkNodeManager.get(serverWorld);
             manager.register(new NodeEntry(pos, NodeType.CORE));
             be.registeredToManager = true;
+            be.setForceLoadedChunks(serverWorld, pos);
+        }
+        be.setChanged();
+    }
+
+    private void setForceLoadedChunks(ServerLevel serverWorld, BlockPos pos) {
+        int chunkX = pos.getX() >> 4;
+        int chunkZ = pos.getZ() >> 4;
+
+        forcedChunks = new BlockPos[9];
+        int index = 0;
+
+        for (int dx = -1; dx <= 1; dx++) {
+            for (int dz = -1; dz <= 1; dz++) {
+                int targetChunkX = chunkX + dx;
+                int targetChunkZ = chunkZ + dz;
+                serverWorld.setChunkForced(targetChunkX, targetChunkZ, true);
+                forcedChunks[index++] = new BlockPos(targetChunkX, 0, targetChunkZ);
+            }
+        }
+    }
+
+    private void clearForceLoadedChunks(ServerLevel serverWorld) {
+        if (forcedChunks != null) {
+            for (BlockPos chunkPos : forcedChunks) {
+                if (chunkPos != null) {
+                    serverWorld.setChunkForced(chunkPos.getX(), chunkPos.getZ(), false);
+                }
+            }
+            forcedChunks = null;
         }
     }
 
@@ -84,6 +115,7 @@ public class ProtocolAnchorCoreBlockEntity extends BlockEntity implements GeoBlo
             PowerNetworkManager.get(serverLevel).unregisterGenerator(this.getBlockPos());
             PowerNetworkNodeManager.get(serverLevel).unregister(this.getBlockPos());
             registeredToManager = false;
+            clearForceLoadedChunks(serverLevel);
         }
         super.setRemoved();
     }

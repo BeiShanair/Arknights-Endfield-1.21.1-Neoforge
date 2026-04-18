@@ -3,6 +3,21 @@ package com.besson.endfield;
 import com.besson.endfield.entity.ModItemEntity;
 import com.besson.endfield.screen.ModScreens;
 import com.besson.endfield.screen.custom.*;
+import com.besson.endfield.screen.custom.logicitis.DepotUnloaderScreen;
+import com.besson.endfield.screen.custom.logicitis.ProtocolStashScreen;
+import com.besson.endfield.screen.custom.logicitis.StorageScreen;
+import com.besson.endfield.screen.custom.powering.ProtocolAnchorCorePortScreen;
+import com.besson.endfield.screen.custom.powering.ProtocolAnchorCoreScreen;
+import com.besson.endfield.screen.custom.powering.ThermalBankScreen;
+import com.besson.endfield.screen.custom.production1.*;
+import com.besson.endfield.screen.custom.production2.FillingUnitScreen;
+import com.besson.endfield.screen.custom.production2.GearingUnitScreen;
+import com.besson.endfield.screen.custom.production2.GrindingUnitScreen;
+import com.besson.endfield.screen.custom.production2.PackagingUnitScreen;
+import com.besson.endfield.screen.custom.resourcing.ElectricMiningRigMkIIScreen;
+import com.besson.endfield.screen.custom.resourcing.ElectricMiningRigScreen;
+import com.besson.endfield.screen.custom.resourcing.PortableOriginiumRigScreen;
+import com.besson.endfield.util.ModKeyBindings;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.entity.ThrownItemRenderer;
 import net.neoforged.api.distmarker.Dist;
@@ -12,6 +27,7 @@ import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.fml.common.Mod;
 import net.neoforged.fml.event.lifecycle.FMLClientSetupEvent;
 import net.neoforged.neoforge.client.event.EntityRenderersEvent;
+import net.neoforged.neoforge.client.event.RegisterKeyMappingsEvent;
 import net.neoforged.neoforge.client.event.RegisterMenuScreensEvent;
 import net.neoforged.neoforge.client.gui.ConfigurationScreen;
 import net.neoforged.neoforge.client.gui.IConfigScreenFactory;
@@ -53,10 +69,20 @@ public class ArknightsEndFieldClient {
         event.register(ModScreens.PLANTING_UNIT_SCREEN.get(), PlantingUnitScreen::new);
         event.register(ModScreens.SEED_PICKING_UNIT_SCREEN.get(), SeedPickingUnitScreen::new);
         event.register(ModScreens.SHREDDING_UNIT_SCREEN.get(), ShreddingUnitScreen::new);
+
+        event.register(ModScreens.DEPOT_UNLOADER_SCREEN.get(), DepotUnloaderScreen::new);
+        event.register(ModScreens.PROTOCOL_STASH_SCREEN.get(), ProtocolStashScreen::new);
+        event.register(ModScreens.PROTOCOL_ANCHOR_CORE_PORT_SCREEN.get(), ProtocolAnchorCorePortScreen::new);
+        event.register(ModScreens.STORAGE_SCREEN.get(), StorageScreen::new);
     }
 
     @SubscribeEvent
     public static void registerRenderers(EntityRenderersEvent.RegisterRenderers event){
         event.registerEntityRenderer(ModItemEntity.INDUSTRIAL_EXPLOSIVE.get(), ThrownItemRenderer::new);
+    }
+
+    @SubscribeEvent
+    public static void registerKeyMappings(RegisterKeyMappingsEvent event){
+        ModKeyBindings.register(event);
     }
 }

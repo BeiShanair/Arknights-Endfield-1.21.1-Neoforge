@@ -4,10 +4,19 @@ import com.besson.endfield.ArknightsEndField;
 import com.besson.endfield.block.ModBlocks;
 import com.besson.endfield.item.custom.*;
 import com.besson.endfield.item.custom.combat.*;
+import com.besson.endfield.item.custom.logicitis.DepotBusSectionItem;
+import com.besson.endfield.item.custom.logicitis.DepotLoaderItem;
+import com.besson.endfield.item.custom.logicitis.DepotUnloaderItem;
+import com.besson.endfield.item.custom.logicitis.ProtocolStashItem;
 import com.besson.endfield.item.custom.powering.ElectricPylonItem;
 import com.besson.endfield.item.custom.powering.ProtocolAnchorCoreItem;
 import com.besson.endfield.item.custom.powering.RelayTowerItem;
 import com.besson.endfield.item.custom.powering.ThermalBankItem;
+import com.besson.endfield.item.custom.production1.*;
+import com.besson.endfield.item.custom.production2.FillingUnitItem;
+import com.besson.endfield.item.custom.production2.GearingUnitItem;
+import com.besson.endfield.item.custom.production2.GrindingUnitItem;
+import com.besson.endfield.item.custom.production2.PackagingUnitItem;
 import com.besson.endfield.item.custom.resourcing.ElectricMiningRigItem;
 import com.besson.endfield.item.custom.resourcing.ElectricMiningRigMkIIItem;
 import com.besson.endfield.item.custom.resourcing.PortableOriginiumRigItem;
@@ -79,7 +88,16 @@ public class ModItems {
             () -> new SentryTowerItem(ModBlocks.SENTRY_TOWER.get(), new Item.Properties()));
     public static final DeferredItem<Item> SURGE_TOWER_ITEM = ITEMS.register("surge_tower",
             () -> new SurgeTowerItem(ModBlocks.SURGE_TOWER.get(), new Item.Properties()));
-    
+
+    public static final DeferredItem<Item> PROTOCOL_STASH_ITEM = ITEMS.register("protocol_stash",
+            () -> new ProtocolStashItem(ModBlocks.PROTOCOL_STASH.get(), new Item.Properties()));
+    public static final DeferredItem<Item> DEPOT_BUS_SECTION_ITEM = ITEMS.register("depot_bus_section",
+            () -> new DepotBusSectionItem(ModBlocks.DEPOT_BUS_SECTION.get(), new Item.Properties()));
+    public static final DeferredItem<Item> DEPOT_LOADER_ITEM = ITEMS.register("depot_loader",
+            () -> new DepotLoaderItem(ModBlocks.DEPOT_LOADER.get(), new Item.Properties()));
+    public static final DeferredItem<Item> DEPOT_UNLOADER_ITEM = ITEMS.register("depot_unloader",
+            () -> new DepotUnloaderItem(ModBlocks.DEPOT_UNLOADER.get(), new Item.Properties()));
+
     public static final DeferredItem<Item> AGGAGRIT = ITEMS.register("aggagrit", () -> new Item(new Item.Properties()));
     public static final DeferredItem<Item> AGGAGRIT_BLOCK = ITEMS.register("aggagrit_block", () -> new Item(new Item.Properties().rarity(Rarity.UNCOMMON)));
     public static final DeferredItem<Item> AGGAGRIT_CLUSTER = ITEMS.register("aggagrit_cluster", () -> new Item(new Item.Properties().rarity(Rarity.RARE)));

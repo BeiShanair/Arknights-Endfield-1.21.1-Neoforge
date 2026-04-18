@@ -48,28 +48,11 @@ public class ProtocolAnchorCorePortBlock extends ModBlockEntityWithFacing {
         if (pLevel.isClientSide()) return InteractionResult.CONSUME;
 
         BlockEntity entity = pLevel.getBlockEntity(pPos);
-        if (!(entity instanceof ProtocolAnchorCorePortBlockEntity entity1)) return InteractionResult.CONSUME;
-
-        ItemStack heldItem = pPlayer.getItemInHand(InteractionHand.MAIN_HAND);
-        if (heldItem.isEmpty() && !pPlayer.isShiftKeyDown()) {
-            ProtocolAnchorCoreBlockEntity parent = entity1.getParentBlock();
-            if (parent != null) {
-                pPlayer.openMenu(parent, parent::writeScreenData);
-                return InteractionResult.SUCCESS;
-            }
+        if (entity instanceof ProtocolAnchorCorePortBlockEntity) {
+            pPlayer.openMenu((ProtocolAnchorCorePortBlockEntity) entity, entity.getBlockPos());
+            return InteractionResult.SUCCESS;
         }
-
-        if (heldItem.isEmpty() && pPlayer.isShiftKeyDown()) {
-            entity1.clearFilter();
-            if (pPlayer instanceof ServerPlayer) {
-                ((ServerPlayer) pPlayer).displayClientMessage(Component.literal("Cleared filter"), false);
-            }
-        } else {
-            entity1.setFilter(heldItem);
-            if (pPlayer instanceof ServerPlayer) {
-                ((ServerPlayer) pPlayer).displayClientMessage(Component.literal("Set filter to: " + heldItem.getHoverName().getString()), false);
-            }
-        }
+        
         return InteractionResult.CONSUME;
     }
 
@@ -81,15 +64,11 @@ public class ProtocolAnchorCorePortBlock extends ModBlockEntityWithFacing {
     @Override
     public @Nullable <T extends BlockEntity> BlockEntityTicker<T> getTicker(Level pLevel, BlockState pState, BlockEntityType<T> pBlockEntityType) {
         return createTickerHelper(pBlockEntityType, ModBlockEntities.PROTOCOL_ANCHOR_CORE_PORT.get(),
-                (world1, pos, state1, blockEntity) ->
-                        ProtocolAnchorCorePortBlockEntity.tick(world1, pos, state1, (ProtocolAnchorCorePortBlockEntity) blockEntity));
+                ProtocolAnchorCorePortBlockEntity::tick);
     }
 
     @Override
     public void appendHoverText(ItemStack stack, Item.TooltipContext context, List<Component> tooltipComponents, TooltipFlag tooltipFlag) {
         tooltipComponents.add(Component.translatable("protocol_anchor_core_port.tooltip1").withStyle(ChatFormatting.GRAY));
-        tooltipComponents.add(Component.translatable("protocol_anchor_core_port.tooltip2").withStyle(ChatFormatting.GRAY));
-        tooltipComponents.add(Component.translatable("protocol_anchor_core_port.tooltip3").withStyle(ChatFormatting.GRAY));
-        tooltipComponents.add(Component.translatable("protocol_anchor_core_port.tooltip4").withStyle(ChatFormatting.GRAY));
     }
 }
